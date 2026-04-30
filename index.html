@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SportTracker Web</title>
+<style>
+:root{--bg:#253449;--panel:#31435b;--card:#3a4d68;--card2:#445a78;--text:#f4f7fb;--muted:#c9d3df;--orange:#ff7a1a;--green:#8bd450;--red:#ff5b5b}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{background:var(--panel);padding:14px 16px;position:sticky;top:0;z-index:3;box-shadow:0 2px 12px #0005}
+h1{font-size:20px;margin:0}.muted{color:var(--muted);font-size:13px}
+nav{display:flex;gap:8px;overflow:auto;background:#1f2b3c;padding:10px;position:sticky;top:54px;z-index:3}
+nav button{border:0;border-radius:999px;padding:9px 14px;background:var(--card);color:var(--text);white-space:nowrap;font-weight:700}
+nav button.active{background:var(--orange)}
+main{padding:14px;max-width:850px;margin:auto}section{display:none}section.active{display:block}
+.card{background:var(--card);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 6px 20px #0003;border:1px solid #fff1}
+.card h3{margin:0 0 8px}.set{background:var(--card2);border-radius:14px;padding:10px;margin-top:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button{background:var(--orange);color:white;border:0;border-radius:12px;padding:10px 12px;font-weight:800}
+button.secondary{background:var(--card2)}button.danger{background:var(--red)}
+input,select{background:#1f2b3c;color:var(--text);border:1px solid #ffffff30;border-radius:10px;padding:8px}input[type=number]{width:80px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+pre{background:#1f2b3c;padding:12px;border-radius:12px;white-space:pre-wrap;max-height:420px;overflow:auto}
+canvas{width:100%;height:210px;background:var(--panel);border-radius:14px;margin-top:10px}
+
+.install-banner{
+  margin:12px auto 0;
+  max-width:850px;
+  background:linear-gradient(135deg,#3a4d68,#253449);
+  border:1px solid #ffffff22;
+  border-radius:18px;
+  padding:12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 10px 28px #0005;
+}
+@media(max-width:600px){
+  header{padding:16px}
+  h1{font-size:22px}
+  nav{top:59px}
+  nav button{padding:11px 16px;font-size:15px}
+  main{padding:12px}
+  .card{border-radius:22px;padding:16px;margin:14px 0}
+  .set{border-radius:18px;padding:14px}
+  button{min-height:44px}
+  input,select{min-height:42px}
+  .row{gap:10px}
+  .install-banner{margin:10px 12px 0;flex-direction:column;align-items:stretch}
+}
+
+</style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#253449">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SportTracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+</head>
+<body>
+<header><h1>SportTracker Web</h1><div class="muted" id="dateLabel"></div></header>
+<nav>
+<button class="active" onclick="tab('seance',this)">Séance</button>
+<button onclick="tab('mesures',this)">Poids / Pas</button>
+<button onclick="tab('analyse',this)">Analyse</button>
+<button onclick="tab('export',this)">Export</button><button onclick="tab('sync',this)">Sync Sheets</button>
+</nav>
+
+<div id="installBanner" class="install-banner" style="display:none">
+  <div>
+    <strong>Installer SportTracker</strong>
+    <div class="muted">Ajoute l'app à ton écran d'accueil.</div>
+  </div>
+  <button onclick="installPWA()">Installer</button>
+  <button class="secondary" onclick="hideInstallBanner()">Plus tard</button>
+</div>
+
+<main>
+<section id="seance" class="active">
+<div class="row"><button class="secondary" onclick="move(-1)">← Précédente</button><button onclick="today()">Aujourd'hui</button><button class="secondary" onclick="move(1)">Suivante →</button></div>
+<div class="card"><h2 id="title"></h2><div class="muted">Version web : les données sont stockées dans ce navigateur.</div><div class="row" style="margin-top:10px"><button onclick="allYes()">Tout Oui</button><button class="secondary" onclick="copyTargets()">Objectifs → réels</button><button onclick="saveSession()">Enregistrer</button><button class="danger" onclick="clearCurrentSession()">Effacer cette séance</button></div></div>
+<div id="exos"></div>
+</section>
+<section id="mesures">
+<div class="grid2">
+<div class="card"><h3>Poids</h3><div class="row"><input type="date" id="wDate"><input type="number" step="0.1" id="wVal" placeholder="kg"><button onclick="addWeight()">Ajouter</button></div><canvas id="wCanvas" width="700" height="220"></canvas><div id="wList" class="muted"></div></div>
+<div class="card"><h3>Pas</h3><div class="row"><input type="date" id="sDate"><input type="number" id="sVal" placeholder="pas"><button onclick="addSteps()">Ajouter</button></div><canvas id="sCanvas" width="700" height="220"></canvas><div id="sList" class="muted"></div></div>
+</div>
+</section>
+<section id="analyse"><div class="card"><h3>Analyse automatique</h3><div id="analysis"></div></div></section>
+<section id="export"><div class="card"><h3>Export ChatGPT</h3><div class="row"><button onclick="makeExport()">Générer</button><button class="secondary" onclick="copyExport()">Copier</button><button class="danger" onclick="resetAll()">Tout vider</button></div><pre id="exportText"></pre></div></section>
+
+
+<section id="sync">
+  <div class="card">
+    <h3>Synchronisation Google Sheets</h3>
+    <div class="muted">
+      Google Sheets est déjà connecté dans cette version. Plus besoin de coller l'URL.
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button onclick="syncToGoogleSheets()">Synchroniser maintenant</button>
+      <button class="secondary" onclick="testSyncPayload()">Voir données envoyées</button>
+      <button class="danger" onclick="clearSyncHistory()">Effacer historique sync</button>
+    </div>
+
+    <label class="row" style="margin-top:10px">
+      <input type="checkbox" id="autoSyncToggle" onchange="setAutoSync(this.checked)">
+      Auto-sync après chaque séance enregistrée
+    </label>
+
+    <h4>Statut</h4>
+    <pre id="syncStatus"></pre>
+
+    <h4>Historique des synchronisations</h4>
+    <pre id="syncHistory"></pre>
+  </div>
+</section>
+
+
+</main>
+<script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdjSRGjixZ143gugpHH-T-6Wx2i3kICVx55tgwxcUR0cj4VRc3fnUQ2DrE3tpRzYQpZA/exec';
+const PROGRAMS={
+1:{name:"Séance du lundi",ex:[
+["Overhead press (machine)","cascade",[[4,6],[6,8],[8,10]],[[32.5,6],[30,8],[28.75,10]],2.5],
+["Développé couché (Smith machine)","cascade",[[4,6],[6,8],[8,10]],[[30,4],[28,6],[26,8]],2.5],
+["Curl prise marteau","direct",[[8,12],[8,12],[8,12]],[[20,11],[20,11],[20,11]],2],
+["Oiseau assis prise neutre","technique",[[10,15],[10,15],[10,15]],[[7,12],[7,12],[7,12]],1],
+["Upright row (tirage menton haltère)","direct",[[12,15],[8,12],[6,10]],[[22,15],[22,11],[22,9]],2],
+["Rowing prise large","direct",[[10,15],[10,15],[10,15]],[[15,10],[15,10],[15,10]],2.5]]},
+3:{name:"Séance du mercredi",ex:[
+["Développé couché incliné (Smith machine)","cascade",[[4,6],[6,8],[8,10]],[[25,5],[23,7],[21,9]],2.5],
+["Tirage poulie haute","cascade",[[4,6],[6,8],[8,10]],[[75,6],[70,8],[65,10]],2.5],
+["Écarté poulie vis-à-vis","direct",[[10,15],[10,15],[10,15]],[[12.5,13],[12.5,13],[12.5,13]],2.5],
+["Curl incliné haltères","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2],
+["Élévations latérales (poulie)","technique",[[15,20],[15,20],[15,20]],[[2.5,15],[2.5,15],[2.5,15]],2.5],
+["Crunch poulie","direct_under",[[12,15],[12,15],[12,15]],[[32.5,9],[32.5,9],[32.5,9]],2.5],
+["Extension triceps (overhead)","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2.5]]},
+5:{name:"Séance du vendredi",ex:[
+["Tirage horizontal (dos)","cascade",[[4,6],[6,8],[8,10]],[[65,4],[60,6],[55,8]],5],
+["Extension triceps coude en bas (triceps)","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2.5],
+["Curl haltère (classique)","direct",[[10,15],[10,15],[10,15]],[[14,12],[14,12],[14,12]],2],
+["Développé décliné (barre)","cascade",[[6,8],[8,10],[10,12]],[[17.5,7],[15,9],[10,11]],2.5],
+["Pull-over poulie barre","direct",[[12,15],[12,15],[12,15]],[[15,15],[15,15],[15,15]],2.5]]},
+0:{name:"Séance du dimanche",ex:[
+["Presse","direct",[[6,10],[6,10],[6,10]],[[75,8],[75,8],[75,8]],5],
+["Romanian dead lift (Barre guidée)","direct",[[10,15],[10,15],[10,15]],[[25,10],[25,10],[25,10]],5],
+["Leg extension","direct",[[8,12],[8,12],[8,12]],[[60,9],[60,9],[60,9]],5],
+["Leg curl allongé","direct",[[8,12],[8,12],[8,12]],[[11.75,10],[11.75,10],[11.75,10]],1.25],
+["Extensions mollets (Barre guidée)","technique",[[12,15],[8,12],[6,10]],[[45,14],[45,10],[45,8]],5],
+["Belt squat","cascade",[[6,8],[8,10],[10,12]],[[20,7],[32.5,9],[32.5,11]],2.5],
+["Crunch poulie","direct_under",[[12,15],[12,15],[12,15]],[[32.5,13],[32.5,13],[32.5,13]],2.5]]}
+};
+let state=JSON.parse(localStorage.getItem("st_web")||'{"sessions":{},"generated":{},"weight":[],"steps":{}}');let current=nextDay(new Date());
+function iso(d){return d.toISOString().slice(0,10)}function key(d){return d.getDay()}function save(){localStorage.setItem("st_web",JSON.stringify(state))}function clone(x){return JSON.parse(JSON.stringify(x))}function fmt(n){return String(n).replace(".",",")}
+function nextDay(d){let x=new Date(d);for(let i=0;i<8;i++){if(PROGRAMS[key(x)])return x;x.setDate(x.getDate()+1)}return x}
+function base(d){let k=iso(d);if(state.generated[k])return clone(state.generated[k]);let p=PROGRAMS[key(d)];return {name:p.name,ex:p.ex.map(e=>({name:e[0],type:e[1],ranges:e[2],sets:e[3].map(s=>({weight:s[0],reps:s[1]})),inc:e[4]}))}}
+function progress(ex,res,real){let n=clone(ex),top=ex.ranges.map(r=>r[1]),min=ex.ranges.map(r=>r[0]);if(res.some(x=>x==="Non")||!res.every(x=>x==="Oui")){n.note="Échec/incomplet : charge conservée";return n}
+if(ex.type==="cascade"){for(let i=0;i<3;i++){if(real[i]>=top[i]){n.sets[i].weight=+(n.sets[i].weight+ex.inc).toFixed(2);n.sets[i].reps=min[i];for(let j=i+1;j<3;j++)n.sets[j].reps=Math.max(min[j],real[j]-1);n.note=`Cascade : montée S${i+1}, reps suivantes adaptatives`;return n}}for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Cascade : +1 rep cible";return n}
+if(ex.type==="technique"){for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Technique : charge conservée";return n}
+if(real.every((r,i)=>r>=top[i])){for(let i=0;i<3;i++){n.sets[i].weight=+(n.sets[i].weight+ex.inc).toFixed(2);n.sets[i].reps=min[i]}n.note="Direct : montée charge"}else{for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Direct : +1 rep cible"}return n}
+function render(){let p=base(current),k=iso(current),saved=state.sessions[k];document.getElementById("dateLabel").textContent="Séance affichée : "+k;document.getElementById("title").textContent=p.name+" - "+k;let box=document.getElementById("exos");box.innerHTML="";p.ex.forEach((ex,ei)=>{let c=document.createElement("div");c.className="card";c.innerHTML=`<h3>${ei+1}. ${ex.name}</h3><div class="muted">${ex.note||""}</div>`;ex.sets.forEach((s,si)=>{let rv=saved?.actual?.[ex.name]?.[si]??s.reps;let rs=saved?.results?.[ex.name]?.[si]??"";c.innerHTML+=`<div class="set"><b>S${si+1}</b> — Range ${ex.ranges[si][0]}-${ex.ranges[si][1]}<br>Objectif : <b>${s.reps} reps à ${fmt(s.weight)} kg</b><div class="row" style="margin-top:8px"><label>Réel</label><input type="number" id="r_${ei}_${si}" value="${rv}"><select id="v_${ei}_${si}"><option value="">--</option><option ${rs==="Oui"?"selected":""}>Oui</option><option ${rs==="Non"?"selected":""}>Non</option></select></div></div>`});box.appendChild(c)});analyse()}
+function move(n){do{current.setDate(current.getDate()+n)}while(!PROGRAMS[key(current)]);render()}function today(){current=nextDay(new Date());render()}function allYes(){document.querySelectorAll("select[id^='v_']").forEach(s=>s.value="Oui")}function copyTargets(){base(current).ex.forEach((ex,ei)=>ex.sets.forEach((s,si)=>document.getElementById(`r_${ei}_${si}`).value=s.reps))}
+function clearCurrentSession(){
+  const k=iso(current);
+  if(!confirm("Effacer uniquement la séance affichée ("+k+") ?")) return;
+  delete state.sessions[k];
+  delete state.generated[k];
+  save();
+  render();
+  alert("Séance effacée : "+k);
+}
+function saveSession(){let p=base(current),k=iso(current),actual={},results={};p.ex.forEach((ex,ei)=>{actual[ex.name]=[];results[ex.name]=[];ex.sets.forEach((s,si)=>{actual[ex.name].push(Number(document.getElementById(`r_${ei}_${si}`).value));results[ex.name].push(document.getElementById(`v_${ei}_${si}`).value)})});state.sessions[k]={name:p.name,program:p,actual,results};let nd=new Date(current);nd.setDate(nd.getDate()+7);state.generated[iso(nd)]={name:p.name,ex:p.ex.map(ex=>progress(ex,results[ex.name],actual[ex.name]))};save();alert("Séance enregistrée. Suivante générée : "+iso(nd));analyse();autoSyncIfEnabled()}
+function addWeight(){let d=wDate.value,v=Number(wVal.value);if(!d||!v)return;state.weight=state.weight.filter(x=>x.date!==d);state.weight.push({date:d,weight:v});state.weight.sort((a,b)=>a.date.localeCompare(b.date));save();measures()}
+function addSteps(){let d=sDate.value,v=Number(sVal.value);if(!d||!v)return;state.steps[d]=v;save();measures()}
+function measures(){wDate.value ||= iso(new Date());sDate.value ||= iso(new Date());wList.innerHTML=state.weight.map(x=>`${x.date} : ${x.weight} kg`).join("<br>");sList.innerHTML=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("<br>");chart("wCanvas",state.weight.map(x=>({d:x.date,v:x.weight})));chart("sCanvas",Object.keys(state.steps).sort().map(d=>({d,v:state.steps[d]})))}
+function chart(id,rows){let c=document.getElementById(id),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#c9d3df";if(rows.length<2){ctx.fillText("Ajoute au moins 2 valeurs",20,40);return}let vals=rows.map(r=>r.v),mn=Math.min(...vals),mx=Math.max(...vals),pad=35;ctx.strokeStyle="#ff7a1a";ctx.lineWidth=3;ctx.beginPath();rows.forEach((r,i)=>{let x=pad+i*((c.width-2*pad)/(rows.length-1)),y=c.height-pad-((r.v-mn)/(mx-mn||1))*(c.height-2*pad);if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y)});ctx.stroke()}
+function analyse(){let ks=Object.keys(state.sessions).sort(),a=document.getElementById("analysis");if(!a)return;a.innerHTML=ks.length?`Séances enregistrées : ${ks.length}<br>Dernière : ${ks.at(-1)}`:"Aucune séance enregistrée."}
+function makeExport(){let t="EXPORT SPORTTRACKER\\n\\nSÉANCES\\n";Object.keys(state.sessions).sort().forEach(d=>{let s=state.sessions[d];t+=`\\n${d} - ${s.name}\\n`;s.program.ex.forEach(ex=>{t+=`- ${ex.name}\\n`;ex.sets.forEach((se,i)=>t+=`  S${i+1}: objectif ${se.reps}x${se.weight} | réel ${s.actual[ex.name][i]} | ${s.results[ex.name][i]}\\n`)})});t+="\\nPOIDS\\n"+state.weight.map(x=>`${x.date}: ${x.weight} kg`).join("\\n");t+="\\n\\nPAS\\n"+Object.keys(state.steps).sort().map(d=>`${d}: ${state.steps[d]} pas`).join("\\n");exportText.textContent=t}
+function copyExport(){navigator.clipboard.writeText(exportText.textContent||"")}function resetAll(){if(confirm("Tout vider ?")){localStorage.removeItem("st_web");location.reload()}}
+function tab(id,b){document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");if(id==="mesures")measures();if(id==="analyse")analyse()}
+
+
+function setAutoSync(enabled){
+  localStorage.setItem("st_web_auto_sync", enabled ? "1" : "0");
+}
+function loadAutoSync(){
+  const el=document.getElementById("autoSyncToggle");
+  if(el) el.checked = localStorage.getItem("st_web_auto_sync")==="1";
+  renderSyncHistory();
+}
+function buildSyncPayload(){
+  return {
+    source:"SportTracker_WEB",
+    exported_at:new Date().toISOString(),
+    sessions:state.sessions,
+    weight:state.weight,
+    steps:state.steps
+  };
+}
+function testSyncPayload(){
+  document.getElementById("syncStatus").textContent=JSON.stringify(buildSyncPayload(),null,2);
+}
+function addSyncHistory(status, detail){
+  const hist = JSON.parse(localStorage.getItem("st_web_sync_history") || "[]");
+  hist.unshift({
+    date:new Date().toLocaleString("fr-FR"),
+    status,
+    detail
+  });
+  localStorage.setItem("st_web_sync_history", JSON.stringify(hist.slice(0,25)));
+  renderSyncHistory();
+}
+function renderSyncHistory(){
+  const el=document.getElementById("syncHistory");
+  if(!el) return;
+  const hist = JSON.parse(localStorage.getItem("st_web_sync_history") || "[]");
+  el.textContent = hist.length
+    ? hist.map(x=>`${x.date} | ${x.status} | ${x.detail}`).join("\n")
+    : "Aucune synchronisation pour l'instant.";
+}
+function clearSyncHistory(){
+  localStorage.removeItem("st_web_sync_history");
+  renderSyncHistory();
+}
+async function syncToGoogleSheets(){
+  const status=document.getElementById("syncStatus");
+  if(status) status.textContent="Synchronisation en cours...";
+  try{
+    await fetch(GOOGLE_SCRIPT_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(buildSyncPayload())
+    });
+    const msg="Synchronisation envoyée. Vérifie ton Google Sheet.";
+    if(status) status.textContent=msg + "\n\nNote : mode no-cors = le navigateur ne peut pas lire la réponse, mais l'envoi part bien si l'URL est correcte.";
+    addSyncHistory("OK", msg);
+  }catch(e){
+    const msg="Erreur sync : "+e.message;
+    if(status) status.textContent=msg;
+    addSyncHistory("ERREUR", e.message);
+  }
+}
+async function autoSyncIfEnabled(){
+  if(localStorage.getItem("st_web_auto_sync")==="1"){
+    await syncToGoogleSheets();
+  }
+}
+wDate.value=iso(new Date());sDate.value=iso(new Date());render();measures();loadAutoSync();
+
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(localStorage.getItem("st_pwa_install_hidden")!=="1"){
+    const b=document.getElementById("installBanner");
+    if(b) b.style.display="flex";
+  }
+});
+async function installPWA(){
+  if(!deferredInstallPrompt){
+    alert("Si le bouton d'installation n'apparaît pas, utilise le menu du navigateur puis 'Ajouter à l'écran d'accueil'.");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  hideInstallBanner();
+}
+function hideInstallBanner(){
+  localStorage.setItem("st_pwa_install_hidden","1");
+  const b=document.getElementById("installBanner");
+  if(b) b.style.display="none";
+}
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
+
+</script>
+</body></html>
