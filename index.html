@@ -2,286 +2,271 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SportTracker Web</title>
-<style>
-:root{--bg:#253449;--panel:#31435b;--card:#3a4d68;--card2:#445a78;--text:#f4f7fb;--muted:#c9d3df;--orange:#ff7a1a;--green:#8bd450;--red:#ff5b5b}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-header{background:var(--panel);padding:14px 16px;position:sticky;top:0;z-index:3;box-shadow:0 2px 12px #0005}
-h1{font-size:20px;margin:0}.muted{color:var(--muted);font-size:13px}
-nav{display:flex;gap:8px;overflow:auto;background:#1f2b3c;padding:10px;position:sticky;top:54px;z-index:3}
-nav button{border:0;border-radius:999px;padding:9px 14px;background:var(--card);color:var(--text);white-space:nowrap;font-weight:700}
-nav button.active{background:var(--orange)}
-main{padding:14px;max-width:850px;margin:auto}section{display:none}section.active{display:block}
-.card{background:var(--card);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 6px 20px #0003;border:1px solid #fff1}
-.card h3{margin:0 0 8px}.set{background:var(--card2);border-radius:14px;padding:10px;margin-top:8px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button{background:var(--orange);color:white;border:0;border-radius:12px;padding:10px 12px;font-weight:800}
-button.secondary{background:var(--card2)}button.danger{background:var(--red)}
-input,select{background:#1f2b3c;color:var(--text);border:1px solid #ffffff30;border-radius:10px;padding:8px}input[type=number]{width:80px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.grid2{grid-template-columns:1fr}}
-pre{background:#1f2b3c;padding:12px;border-radius:12px;white-space:pre-wrap;max-height:420px;overflow:auto}
-canvas{width:100%;height:210px;background:var(--panel);border-radius:14px;margin-top:10px}
-
-.install-banner{
-  margin:12px auto 0;
-  max-width:850px;
-  background:linear-gradient(135deg,#3a4d68,#253449);
-  border:1px solid #ffffff22;
-  border-radius:18px;
-  padding:12px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  box-shadow:0 10px 28px #0005;
-}
-@media(max-width:600px){
-  header{padding:16px}
-  h1{font-size:22px}
-  nav{top:59px}
-  nav button{padding:11px 16px;font-size:15px}
-  main{padding:12px}
-  .card{border-radius:22px;padding:16px;margin:14px 0}
-  .set{border-radius:18px;padding:14px}
-  button{min-height:44px}
-  input,select{min-height:42px}
-  .row{gap:10px}
-  .install-banner{margin:10px 12px 0;flex-direction:column;align-items:stretch}
-}
-
-</style>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SportTracker Mobile V2</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#253449">
+<meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SportTracker">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
-
+<style>
+:root {
+  --bg:#050505; --panel:#0d0d0d; --card:#151515; --card2:#1d1d1d;
+  --border:#2b2b2b; --red:#ff1a1a; --red2:#ff4444;
+  --green:#38ff7a; --orange:#ff9b2f; --text:#f5f5f5; --muted:#a0a0a0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding-bottom:82px}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#111,#050505);border-bottom:1px solid #3a0000;padding:16px 16px 12px;box-shadow:0 8px 28px #000}
+h1{margin:0;font-size:22px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13px;margin-top:3px}
+main{padding:12px;max-width:760px;margin:auto}
+.page{display:none} .page.active{display:block}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#0b0b0bf2;border-top:1px solid #310000;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px;z-index:20;backdrop-filter:blur(10px)}
+.bottom button{background:transparent;color:var(--muted);border:0;border-radius:14px;padding:9px 3px;font-size:12px;font-weight:800}
+.bottom button.active{background:#220000;color:#fff;box-shadow:0 0 0 1px #5b0000 inset;color:var(--red2)}
+.card{background:linear-gradient(180deg,#171717,#101010);border:1px solid var(--border);border-radius:20px;padding:15px;margin:12px 0;box-shadow:0 10px 24px #0008}
+.card.ok{border-color:var(--green);box-shadow:0 0 0 1px rgba(56,255,122,.25),0 10px 24px #0008}
+.card.ko{border-color:var(--red);box-shadow:0 0 0 1px rgba(255,26,26,.25),0 10px 24px #0008}
+.card.pending{border-color:var(--border)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{border:0;border-radius:14px;padding:11px 13px;background:var(--red);color:white;font-weight:900;letter-spacing:.2px}
+button.secondary{background:#242424;color:#eee}
+button.danger{background:#7d0000}
+button.full{width:100%;margin-top:10px}
+select,input{background:#090909;color:var(--text);border:1px solid #333;border-radius:12px;padding:10px;min-height:42px}
+input[type=number]{width:86px}
+.exercise-title{font-size:18px;font-weight:900;margin-bottom:4px;color:#fff}
+.badge{display:inline-block;margin-left:8px;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:900;vertical-align:middle}
+.badge.direct{background:#320000;color:var(--red2)} .badge.cascade{background:#332000;color:var(--orange)} .badge.technique{background:#24183d;color:#b88cff}
+.set{background:#1a1a1a;border:1px solid #303030;border-radius:16px;padding:12px;margin-top:10px}
+.set.ok{border-color:var(--green);background:rgba(56,255,122,.10)}
+.set.ko{border-color:var(--red);background:rgba(255,26,26,.10)}
+.set.pending{border-color:#303030}
+.set-head{font-weight:900;color:#fff;margin-bottom:6px}
+.target{color:var(--muted);font-size:13px;line-height:1.45}
+.progress-strip{height:8px;border-radius:999px;background:#080808;overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--green));width:0%}
+canvas{width:100%;height:220px;background:#0d0d0d;border-radius:16px;margin-top:10px}
+pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:16px;padding:12px;max-height:440px;overflow:auto;color:#eee}
+.small{font-size:12px;color:var(--muted)}
+</style>
 </head>
 <body>
-<header><h1>SportTracker Web</h1><div class="muted" id="dateLabel"></div></header>
-<nav>
-<button class="active" onclick="tab('seance',this)">Séance</button>
-<button onclick="tab('mesures',this)">Poids / Pas</button>
-<button onclick="tab('analyse',this)">Analyse</button>
-<button onclick="tab('export',this)">Export</button><button onclick="tab('sync',this)">Sync Sheets</button>
-</nav>
-
-<div id="installBanner" class="install-banner" style="display:none">
-  <div>
-    <strong>Installer SportTracker</strong>
-    <div class="muted">Ajoute l'app à ton écran d'accueil.</div>
-  </div>
-  <button onclick="installPWA()">Installer</button>
-  <button class="secondary" onclick="hideInstallBanner()">Plus tard</button>
-</div>
+<header>
+  <h1>SportTracker <span style="color:var(--red)">Mobile V2</span></h1>
+  <div class="sub" id="headerDate"></div>
+</header>
 
 <main>
-<section id="seance" class="active">
-<div class="row"><button class="secondary" onclick="move(-1)">← Précédente</button><button onclick="today()">Aujourd'hui</button><button class="secondary" onclick="move(1)">Suivante →</button></div>
-<div class="card"><h2 id="title"></h2><div class="muted">Version web : les données sont stockées dans ce navigateur.</div><div class="row" style="margin-top:10px"><button onclick="allYes()">Tout Oui</button><button class="secondary" onclick="copyTargets()">Objectifs → réels</button><button onclick="saveSession()">Enregistrer</button><button class="danger" onclick="clearCurrentSession()">Effacer cette séance</button></div></div>
-<div id="exos"></div>
-</section>
-<section id="mesures">
-<div class="grid2">
-<div class="card"><h3>Poids</h3><div class="row"><input type="date" id="wDate"><input type="number" step="0.1" id="wVal" placeholder="kg"><button onclick="addWeight()">Ajouter</button></div><canvas id="wCanvas" width="700" height="220"></canvas><div id="wList" class="muted"></div></div>
-<div class="card"><h3>Pas</h3><div class="row"><input type="date" id="sDate"><input type="number" id="sVal" placeholder="pas"><button onclick="addSteps()">Ajouter</button></div><canvas id="sCanvas" width="700" height="220"></canvas><div id="sList" class="muted"></div></div>
-</div>
-</section>
-<section id="analyse"><div class="card"><h3>Analyse automatique</h3><div id="analysis"></div></div></section>
-<section id="export"><div class="card"><h3>Export ChatGPT</h3><div class="row"><button onclick="makeExport()">Générer</button><button class="secondary" onclick="copyExport()">Copier</button><button class="danger" onclick="resetAll()">Tout vider</button></div><pre id="exportText"></pre></div></section>
-
-
-<section id="sync">
+<section id="page-session" class="page active">
+  <div class="row">
+    <button class="secondary" onclick="moveSession(-1)">←</button>
+    <button onclick="goToday()">Aujourd'hui</button>
+    <button class="secondary" onclick="moveSession(1)">→</button>
+  </div>
   <div class="card">
-    <h3>Synchronisation Google Sheets</h3>
-    <div class="muted">
-      Google Sheets est déjà connecté dans cette version. Plus besoin de coller l'URL.
+    <div class="row">
+      <input type="date" id="manualDate">
+      <select id="manualType">
+        <option value="1">Lundi</option>
+        <option value="3">Mercredi</option>
+        <option value="5">Vendredi</option>
+        <option value="0">Dimanche</option>
+      </select>
+      <button class="secondary" onclick="applyManualSession()">Afficher</button>
     </div>
+  </div>
+  <h2 id="sessionTitle"></h2>
+  <div class="row">
+    <button onclick="markAllYes()">Tout Oui</button>
+    <button class="secondary" onclick="saveSession()">Enregistrer</button>
+    <button class="danger" onclick="clearCurrentSession()">Effacer</button>
+  </div>
+  <div id="exerciseList"></div>
+</section>
 
-    <div class="row" style="margin-top:10px">
-      <button onclick="syncToGoogleSheets()">Synchroniser maintenant</button>
-      <button class="secondary" onclick="testSyncPayload()">Voir données envoyées</button>
-      <button class="danger" onclick="clearSyncHistory()">Effacer historique sync</button>
-    </div>
-
-    <label class="row" style="margin-top:10px">
-      <input type="checkbox" id="autoSyncToggle" onchange="setAutoSync(this.checked)">
-      Auto-sync après chaque séance enregistrée
-    </label>
-
-    <h4>Statut</h4>
-    <pre id="syncStatus"></pre>
-
-    <h4>Historique des synchronisations</h4>
-    <pre id="syncHistory"></pre>
+<section id="page-progress" class="page">
+  <h2>Progression</h2>
+  <div class="card">
+    <select id="exerciseSelect" style="width:100%" onchange="renderProgress()"></select>
+    <canvas id="progressCanvas" width="720" height="240"></canvas>
+    <pre id="progressList"></pre>
   </div>
 </section>
 
+<section id="page-measures" class="page">
+  <h2>Poids / Pas</h2>
+  <div class="card">
+    <h3>Poids</h3>
+    <div class="row"><input type="date" id="weightDate"><input type="number" step="0.1" id="weightValue" placeholder="kg"><button onclick="addWeight()">Ajouter</button></div>
+    <canvas id="weightCanvas" width="720" height="220"></canvas>
+    <pre id="weightList"></pre>
+  </div>
+  <div class="card">
+    <h3>Pas</h3>
+    <div class="row"><input type="date" id="stepsDate"><input type="number" id="stepsValue" placeholder="pas"><button onclick="addSteps()">Ajouter</button></div>
+    <canvas id="stepsCanvas" width="720" height="220"></canvas>
+    <pre id="stepsList"></pre>
+  </div>
+</section>
 
+<section id="page-export" class="page">
+  <h2>Export</h2>
+  <div class="row">
+    <button onclick="generateExport()">Actualiser export</button>
+    <button class="secondary" onclick="copyExport()">Copier</button>
+  </div>
+  <pre id="exportText"></pre>
+</section>
+
+<section id="page-sync" class="page">
+  <h2>Sync Google Sheets</h2>
+  <div class="card">
+    <label class="row"><input type="checkbox" id="autoSync" onchange="setAutoSync(this.checked)"> Auto-sync après séance</label>
+    <button class="full" onclick="syncSheets()">Synchroniser maintenant</button>
+    <pre id="syncStatus"></pre>
+  </div>
+</section>
 </main>
+
+<nav class="bottom">
+<button class="active" onclick="showPage('session',this)">🏋<br>Séance</button>
+<button onclick="showPage('progress',this)">📈<br>Perf</button>
+<button onclick="showPage('measures',this)">⚖️<br>Poids</button>
+<button onclick="showPage('export',this)">📤<br>Export</button>
+<button onclick="showPage('sync',this)">🔄<br>Sync</button>
+</nav>
+
 <script>
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdjSRGjixZ143gugpHH-T-6Wx2i3kICVx55tgwxcUR0cj4VRc3fnUQ2DrE3tpRzYQpZA/exec';
-const PROGRAMS={
-1:{name:"Séance du lundi",ex:[
-["Overhead press (machine)","cascade",[[4,6],[6,8],[8,10]],[[32.5,6],[30,8],[28.75,10]],2.5],
-["Développé couché (Smith machine)","cascade",[[4,6],[6,8],[8,10]],[[30,4],[28,6],[26,8]],2.5],
-["Curl prise marteau","direct",[[8,12],[8,12],[8,12]],[[20,11],[20,11],[20,11]],2],
-["Oiseau assis prise neutre","technique",[[10,15],[10,15],[10,15]],[[7,12],[7,12],[7,12]],1],
-["Upright row (tirage menton haltère)","direct",[[12,15],[8,12],[6,10]],[[22,15],[22,11],[22,9]],2],
-["Rowing prise large","direct",[[10,15],[10,15],[10,15]],[[15,10],[15,10],[15,10]],2.5]]},
-3:{name:"Séance du mercredi",ex:[
-["Développé couché incliné (Smith machine)","cascade",[[4,6],[6,8],[8,10]],[[25,5],[23,7],[21,9]],2.5],
-["Tirage poulie haute","cascade",[[4,6],[6,8],[8,10]],[[75,6],[70,8],[65,10]],2.5],
-["Écarté poulie vis-à-vis","direct",[[10,15],[10,15],[10,15]],[[12.5,13],[12.5,13],[12.5,13]],2.5],
-["Curl incliné haltères","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2],
-["Élévations latérales (poulie)","technique",[[15,20],[15,20],[15,20]],[[2.5,15],[2.5,15],[2.5,15]],2.5],
-["Crunch poulie","direct_under",[[12,15],[12,15],[12,15]],[[32.5,9],[32.5,9],[32.5,9]],2.5],
-["Extension triceps (overhead)","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2.5]]},
-5:{name:"Séance du vendredi",ex:[
-["Tirage horizontal (dos)","cascade",[[4,6],[6,8],[8,10]],[[65,4],[60,6],[55,8]],5],
-["Extension triceps coude en bas (triceps)","direct",[[12,15],[12,15],[12,15]],[[10,14],[10,14],[10,14]],2.5],
-["Curl haltère (classique)","direct",[[10,15],[10,15],[10,15]],[[14,12],[14,12],[14,12]],2],
-["Développé décliné (barre)","cascade",[[6,8],[8,10],[10,12]],[[17.5,7],[15,9],[10,11]],2.5],
-["Pull-over poulie barre","direct",[[12,15],[12,15],[12,15]],[[15,15],[15,15],[15,15]],2.5]]},
-0:{name:"Séance du dimanche",ex:[
-["Presse","direct",[[6,10],[6,10],[6,10]],[[75,8],[75,8],[75,8]],5],
-["Romanian dead lift (Barre guidée)","direct",[[10,15],[10,15],[10,15]],[[25,10],[25,10],[25,10]],5],
-["Leg extension","direct",[[8,12],[8,12],[8,12]],[[60,9],[60,9],[60,9]],5],
-["Leg curl allongé","direct",[[8,12],[8,12],[8,12]],[[11.75,10],[11.75,10],[11.75,10]],1.25],
-["Extensions mollets (Barre guidée)","technique",[[12,15],[8,12],[6,10]],[[45,14],[45,10],[45,8]],5],
-["Belt squat","cascade",[[6,8],[8,10],[10,12]],[[20,7],[32.5,9],[32.5,11]],2.5],
-["Crunch poulie","direct_under",[[12,15],[12,15],[12,15]],[[32.5,13],[32.5,13],[32.5,13]],2.5]]}
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdjSRGjixZ143gugpHH-T-6Wx2i3kICVx55tgwxcUR0cj4VRc3fnUQ2DrE3tpRzYQpZA/exec";
+
+const PROGRAMS = {
+  1: { name:"Séance du lundi", exercises:[
+    {name:"Overhead press (machine)", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:33.75,reps:5},{weight:31.25,reps:7},{weight:30,reps:9}], increment:1.25},
+    {name:"Développé couché (Smith machine)", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:18.75,reps:5},{weight:16.75,reps:7},{weight:15,reps:9}], increment:1.25},
+    {name:"Curl prise marteau (cycle amplitude 1)", type:"technique", ranges:[[8,12],[8,12],[8,12]], sets:[{weight:20,reps:8},{weight:20,reps:8},{weight:20,reps:8}], increment:0, note:"Cycle amplitude 1 : charge fixe, amplitude/contrôle prioritaires"},
+    {name:"Oiseau assis prise neutre", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:7,reps:14},{weight:7,reps:14},{weight:7,reps:14}], increment:2},
+    {name:"Rowing prise large", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:35,reps:10},{weight:35,reps:10},{weight:35,reps:10}], increment:2.5}
+  ]},
+  3: { name:"Séance du mercredi", exercises:[
+    {name:"Développé couché incliné (Smith machine)", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:18.75,reps:5},{weight:16.25,reps:7},{weight:15,reps:9}], increment:1.25},
+    {name:"Tirage poulie haute", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:80,reps:5},{weight:75,reps:7},{weight:70,reps:9}], increment:5},
+    {name:"Ecarté poulie vis-à-vis", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:12.5,reps:15},{weight:12.5,reps:15},{weight:12.5,reps:15}], increment:2.5},
+    {name:"Curl incliné haltères", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:12,reps:12},{weight:12,reps:12},{weight:12,reps:12}], increment:2},
+    {name:"Elévations latérales (poulie)", type:"direct", ranges:[[15,20],[15,20],[15,20]], sets:[{weight:2.5,reps:17},{weight:2.5,reps:17},{weight:2.5,reps:17}], increment:2.5},
+    {name:"Crunch poulie", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:32.5,reps:9},{weight:32.5,reps:9},{weight:32.5,reps:9}], increment:2.5},
+    {name:"Extension triceps (overhead)", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:12.5,reps:12},{weight:12.5,reps:12},{weight:12.5,reps:12}], increment:2.5}
+  ]},
+  5: { name:"Séance du vendredi", exercises:[
+    {name:"Tirage horizontal (dos)", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:65,reps:6},{weight:60,reps:8},{weight:55,reps:10}], increment:5},
+    {name:"Extension triceps coude en bas (triceps)", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:12.5,reps:12},{weight:12.5,reps:12},{weight:12.5,reps:12}], increment:2.5},
+    {name:"Curl haltère (classique)", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:14,reps:14},{weight:14,reps:14},{weight:14,reps:14}], increment:2},
+    {name:"Développé décliné (barre)", type:"cascade", ranges:[[6,8],[8,10],[10,12]], sets:[{weight:18.75,reps:6},{weight:16.25,reps:8},{weight:13.75,reps:10}], increment:1.25},
+    {name:"Pull-over poulie barre", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:17.5,reps:13},{weight:17.5,reps:13},{weight:17.5,reps:13}], increment:2.5}
+  ]},
+  0: { name:"Séance du dimanche", exercises:[
+    {name:"Presse", type:"direct", ranges:[[6,10],[6,10],[6,10]], sets:[{weight:75,reps:10},{weight:75,reps:10},{weight:75,reps:10}], increment:5},
+    {name:"Romanian dead lift (Barre guidée)", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:25,reps:12},{weight:25,reps:12},{weight:25,reps:12}], increment:5},
+    {name:"Leg extension", type:"direct", ranges:[[8,12],[8,12],[8,12]], sets:[{weight:60,reps:11},{weight:60,reps:11},{weight:60,reps:11}], increment:5},
+    {name:"Leg curl allongé", type:"direct", ranges:[[8,12],[8,12],[8,12]], sets:[{weight:11.75,reps:12},{weight:11.75,reps:12},{weight:11.75,reps:12}], increment:1.75},
+    {name:"Extensions mollets (Barre guidée)", type:"direct", ranges:[[12,15],[8,12],[6,10]], sets:[{weight:45,reps:15},{weight:45,reps:12},{weight:45,reps:10}], increment:5},
+    {name:"Belt squat", type:"cascade", ranges:[[6,8],[8,10],[10,12]], sets:[{weight:20,reps:7},{weight:20,reps:9},{weight:20,reps:11}], increment:5},
+    {name:"Crunch poulie", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:32.5,reps:13},{weight:32.5,reps:13},{weight:32.5,reps:13}], increment:2.5}
+  ]}
 };
-let state=JSON.parse(localStorage.getItem("st_web")||'{"sessions":{},"generated":{},"weight":[],"steps":{}}');let current=nextDay(new Date());
-function iso(d){return d.toISOString().slice(0,10)}function key(d){return d.getDay()}function save(){localStorage.setItem("st_web",JSON.stringify(state))}function clone(x){return JSON.parse(JSON.stringify(x))}function fmt(n){return String(n).replace(".",",")}
-function nextDay(d){let x=new Date(d);for(let i=0;i<8;i++){if(PROGRAMS[key(x)])return x;x.setDate(x.getDate()+1)}return x}
-function base(d){let k=iso(d);if(state.generated[k])return clone(state.generated[k]);let p=PROGRAMS[key(d)];return {name:p.name,ex:p.ex.map(e=>({name:e[0],type:e[1],ranges:e[2],sets:e[3].map(s=>({weight:s[0],reps:s[1]})),inc:e[4]}))}}
-function progress(ex,res,real){let n=clone(ex),top=ex.ranges.map(r=>r[1]),min=ex.ranges.map(r=>r[0]);if(res.some(x=>x==="Non")||!res.every(x=>x==="Oui")){n.note="Échec/incomplet : charge conservée";return n}
-if(ex.type==="cascade"){for(let i=0;i<3;i++){if(real[i]>=top[i]){n.sets[i].weight=+(n.sets[i].weight+ex.inc).toFixed(2);n.sets[i].reps=min[i];for(let j=i+1;j<3;j++)n.sets[j].reps=Math.max(min[j],real[j]-1);n.note=`Cascade : montée S${i+1}, reps suivantes adaptatives`;return n}}for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Cascade : +1 rep cible";return n}
-if(ex.type==="technique"){for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Technique : charge conservée";return n}
-if(real.every((r,i)=>r>=top[i])){for(let i=0;i<3;i++){n.sets[i].weight=+(n.sets[i].weight+ex.inc).toFixed(2);n.sets[i].reps=min[i]}n.note="Direct : montée charge"}else{for(let i=0;i<3;i++)n.sets[i].reps=Math.min(top[i],real[i]+1);n.note="Direct : +1 rep cible"}return n}
-function render(){let p=base(current),k=iso(current),saved=state.sessions[k];document.getElementById("dateLabel").textContent="Séance affichée : "+k;document.getElementById("title").textContent=p.name+" - "+k;let box=document.getElementById("exos");box.innerHTML="";p.ex.forEach((ex,ei)=>{let c=document.createElement("div");c.className="card";c.innerHTML=`<h3>${ei+1}. ${ex.name}</h3><div class="muted">${ex.note||""}</div>`;ex.sets.forEach((s,si)=>{let rv=saved?.actual?.[ex.name]?.[si]??s.reps;let rs=saved?.results?.[ex.name]?.[si]??"";c.innerHTML+=`<div class="set"><b>S${si+1}</b> — Range ${ex.ranges[si][0]}-${ex.ranges[si][1]}<br>Objectif : <b>${s.reps} reps à ${fmt(s.weight)} kg</b><div class="row" style="margin-top:8px"><label>Réel</label><input type="number" id="r_${ei}_${si}" value="${rv}"><select id="v_${ei}_${si}"><option value="">--</option><option ${rs==="Oui"?"selected":""}>Oui</option><option ${rs==="Non"?"selected":""}>Non</option></select></div></div>`});box.appendChild(c)});analyse()}
-function move(n){do{current.setDate(current.getDate()+n)}while(!PROGRAMS[key(current)]);render()}function today(){current=nextDay(new Date());render()}function allYes(){document.querySelectorAll("select[id^='v_']").forEach(s=>s.value="Oui")}function copyTargets(){base(current).ex.forEach((ex,ei)=>ex.sets.forEach((s,si)=>document.getElementById(`r_${ei}_${si}`).value=s.reps))}
-function clearCurrentSession(){
-  const k=iso(current);
-  if(!confirm("Effacer uniquement la séance affichée ("+k+") ?")) return;
-  delete state.sessions[k];
-  delete state.generated[k];
-  save();
-  render();
-  alert("Séance effacée : "+k);
-}
-function saveSession(){let p=base(current),k=iso(current),actual={},results={};p.ex.forEach((ex,ei)=>{actual[ex.name]=[];results[ex.name]=[];ex.sets.forEach((s,si)=>{actual[ex.name].push(Number(document.getElementById(`r_${ei}_${si}`).value));results[ex.name].push(document.getElementById(`v_${ei}_${si}`).value)})});state.sessions[k]={name:p.name,program:p,actual,results};let nd=new Date(current);nd.setDate(nd.getDate()+7);state.generated[iso(nd)]={name:p.name,ex:p.ex.map(ex=>progress(ex,results[ex.name],actual[ex.name]))};save();alert("Séance enregistrée. Suivante générée : "+iso(nd));analyse();autoSyncIfEnabled()}
-function addWeight(){let d=wDate.value,v=Number(wVal.value);if(!d||!v)return;state.weight=state.weight.filter(x=>x.date!==d);state.weight.push({date:d,weight:v});state.weight.sort((a,b)=>a.date.localeCompare(b.date));save();measures()}
-function addSteps(){let d=sDate.value,v=Number(sVal.value);if(!d||!v)return;state.steps[d]=v;save();measures()}
-function measures(){wDate.value ||= iso(new Date());sDate.value ||= iso(new Date());wList.innerHTML=state.weight.map(x=>`${x.date} : ${x.weight} kg`).join("<br>");sList.innerHTML=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("<br>");chart("wCanvas",state.weight.map(x=>({d:x.date,v:x.weight})));chart("sCanvas",Object.keys(state.steps).sort().map(d=>({d,v:state.steps[d]})))}
-function chart(id,rows){let c=document.getElementById(id),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#c9d3df";if(rows.length<2){ctx.fillText("Ajoute au moins 2 valeurs",20,40);return}let vals=rows.map(r=>r.v),mn=Math.min(...vals),mx=Math.max(...vals),pad=35;ctx.strokeStyle="#ff7a1a";ctx.lineWidth=3;ctx.beginPath();rows.forEach((r,i)=>{let x=pad+i*((c.width-2*pad)/(rows.length-1)),y=c.height-pad-((r.v-mn)/(mx-mn||1))*(c.height-2*pad);if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y)});ctx.stroke()}
-function analyse(){let ks=Object.keys(state.sessions).sort(),a=document.getElementById("analysis");if(!a)return;a.innerHTML=ks.length?`Séances enregistrées : ${ks.length}<br>Dernière : ${ks.at(-1)}`:"Aucune séance enregistrée."}
-function makeExport(){let t="EXPORT SPORTTRACKER\\n\\nSÉANCES\\n";Object.keys(state.sessions).sort().forEach(d=>{let s=state.sessions[d];t+=`\\n${d} - ${s.name}\\n`;s.program.ex.forEach(ex=>{t+=`- ${ex.name}\\n`;ex.sets.forEach((se,i)=>t+=`  S${i+1}: objectif ${se.reps}x${se.weight} | réel ${s.actual[ex.name][i]} | ${s.results[ex.name][i]}\\n`)})});t+="\\nPOIDS\\n"+state.weight.map(x=>`${x.date}: ${x.weight} kg`).join("\\n");t+="\\n\\nPAS\\n"+Object.keys(state.steps).sort().map(d=>`${d}: ${state.steps[d]} pas`).join("\\n");exportText.textContent=t}
-function copyExport(){navigator.clipboard.writeText(exportText.textContent||"")}function resetAll(){if(confirm("Tout vider ?")){localStorage.removeItem("st_web");location.reload()}}
-function tab(id,b){document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");if(id==="mesures")measures();if(id==="analyse")analyse()}
 
+let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") || '{"sessions":{},"generated":{},"weight":[],"steps":{},"custom":{}}');
+let currentDate = nextTrainingDay(new Date());
 
-function setAutoSync(enabled){
-  localStorage.setItem("st_web_auto_sync", enabled ? "1" : "0");
+function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
+function iso(d){return d.toISOString().slice(0,10);}
+function fmt(x){return String(x).replace(".",",");}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function nextTrainingDay(d){let x=new Date(d); for(let i=0;i<8;i++){if(PROGRAMS[x.getDay()]) return x; x.setDate(x.getDate()+1);} return x;}
+function dayLabel(d){return ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][d.getDay()];}
+function frDateFromIso(s){const d=new Date(s+"T00:00:00"); const months=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"]; return dayLabel(d).charAt(0).toUpperCase()+dayLabel(d).slice(1)+" "+d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();}
+function sessionKeyForDate(d){return state.custom[iso(d)] ?? d.getDay();}
+function baseProgram(d){const k=iso(d); if(state.generated[k]) return clone(state.generated[k]); return clone(PROGRAMS[sessionKeyForDate(d)]);}
+
+function progressExercise(ex, results, actual){
+  const n=clone(ex), tops=ex.ranges.map(r=>r[1]), mins=ex.ranges.map(r=>r[0]);
+  if(results.some(x=>x==="Non") || !results.every(x=>x==="Oui")){n.note="Échec/incomplet : charge conservée"; return n;}
+  if(ex.type==="technique"){ for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Technique : charge conservée"; return n; }
+  if(ex.type==="cascade"){ 
+    for(let i=0;i<3;i++){ if(actual[i]>=tops[i]){ n.sets[i].weight=+(n.sets[i].weight+ex.increment).toFixed(2); n.sets[i].reps=mins[i]; for(let j=i+1;j<3;j++) n.sets[j].reps=Math.max(mins[j], actual[j]-1); n.note="Cascade : montée S"+(i+1); return n; } }
+    for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Cascade : +1 rep cible"; return n;
+  }
+  if(actual.every((r,i)=>r>=tops[i])){ for(let i=0;i<3;i++){n.sets[i].weight=+(n.sets[i].weight+ex.increment).toFixed(2); n.sets[i].reps=mins[i];} n.note="Direct : montée charge"; }
+  else { for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Direct : +1 rep cible"; }
+  return n;
 }
-function loadAutoSync(){
-  const el=document.getElementById("autoSyncToggle");
-  if(el) el.checked = localStorage.getItem("st_web_auto_sync")==="1";
-  renderSyncHistory();
-}
-function buildSyncPayload(){
-  return {
-    source:"SportTracker_WEB",
-    exported_at:new Date().toISOString(),
-    sessions:state.sessions,
-    weight:state.weight,
-    steps:state.steps
-  };
-}
-function testSyncPayload(){
-  document.getElementById("syncStatus").textContent=JSON.stringify(buildSyncPayload(),null,2);
-}
-function addSyncHistory(status, detail){
-  const hist = JSON.parse(localStorage.getItem("st_web_sync_history") || "[]");
-  hist.unshift({
-    date:new Date().toLocaleString("fr-FR"),
-    status,
-    detail
-  });
-  localStorage.setItem("st_web_sync_history", JSON.stringify(hist.slice(0,25)));
-  renderSyncHistory();
-}
-function renderSyncHistory(){
-  const el=document.getElementById("syncHistory");
-  if(!el) return;
-  const hist = JSON.parse(localStorage.getItem("st_web_sync_history") || "[]");
-  el.textContent = hist.length
-    ? hist.map(x=>`${x.date} | ${x.status} | ${x.detail}`).join("\n")
-    : "Aucune synchronisation pour l'instant.";
-}
-function clearSyncHistory(){
-  localStorage.removeItem("st_web_sync_history");
-  renderSyncHistory();
-}
-async function syncToGoogleSheets(){
-  const status=document.getElementById("syncStatus");
-  if(status) status.textContent="Synchronisation en cours...";
-  try{
-    await fetch(GOOGLE_SCRIPT_URL,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(buildSyncPayload())
+
+function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById("page-"+id).classList.add("active"); document.querySelectorAll(".bottom button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); if(id==="progress") renderProgress(); if(id==="measures") renderMeasures(); if(id==="export") generateExport();}
+function renderSession(){
+  const p=baseProgram(currentDate), k=iso(currentDate), saved=state.sessions[k];
+  document.getElementById("headerDate").textContent="Séance affichée : "+frDateFromIso(k);
+  document.getElementById("sessionTitle").textContent="Séance du "+dayLabel(currentDate)+" "+frDateFromIso(k).replace(/^\w+ /,"");
+  manualDate.value=k; manualType.value=sessionKeyForDate(currentDate);
+  const list=document.getElementById("exerciseList"); list.innerHTML="";
+  p.exercises.forEach((ex,ei)=>{
+    const card=document.createElement("div"); card.className="card pending"; card.dataset.ex=ei;
+    card.innerHTML=`<div class="exercise-title">${ei+1}. ${ex.name} <span class="badge ${ex.type}">${ex.type.toUpperCase()}</span></div><div class="small">${ex.note||""}</div><div class="progress-strip"><div class="progress-fill"></div></div>`;
+    ex.sets.forEach((s,si)=>{
+      const val=saved?.actual?.[ex.name]?.[si] ?? s.reps;
+      const res=saved?.results?.[ex.name]?.[si] ?? "";
+      let opts=""; for(let r=0;r<=25;r++) opts += `<option ${String(val)===String(r)?"selected":""}>${r}</option>`;
+      card.innerHTML += `<div class="set pending"><div class="set-head">Série ${si+1}</div><div class="target">Range ${ex.ranges[si][0]}-${ex.ranges[si][1]}<br>Objectif : <b>${s.reps} reps à ${fmt(s.weight)} kg</b></div><div class="row" style="margin-top:8px"><label>Réel</label><select id="r_${ei}_${si}">${opts}</select><select id="v_${ei}_${si}" onchange="applyColors()"><option value="">--</option><option ${res==="Oui"?"selected":""}>Oui</option><option ${res==="Non"?"selected":""}>Non</option></select></div></div>`;
     });
-    const msg="Synchronisation envoyée. Vérifie ton Google Sheet.";
-    if(status) status.textContent=msg + "\n\nNote : mode no-cors = le navigateur ne peut pas lire la réponse, mais l'envoi part bien si l'URL est correcte.";
-    addSyncHistory("OK", msg);
-  }catch(e){
-    const msg="Erreur sync : "+e.message;
-    if(status) status.textContent=msg;
-    addSyncHistory("ERREUR", e.message);
-  }
+    list.appendChild(card);
+  });
+  applyColors();
 }
-async function autoSyncIfEnabled(){
-  if(localStorage.getItem("st_web_auto_sync")==="1"){
-    await syncToGoogleSheets();
-  }
-}
-wDate.value=iso(new Date());sDate.value=iso(new Date());render();measures();loadAutoSync();
-
-let deferredInstallPrompt=null;
-window.addEventListener("beforeinstallprompt",(e)=>{
-  e.preventDefault();
-  deferredInstallPrompt=e;
-  if(localStorage.getItem("st_pwa_install_hidden")!=="1"){
-    const b=document.getElementById("installBanner");
-    if(b) b.style.display="flex";
-  }
-});
-async function installPWA(){
-  if(!deferredInstallPrompt){
-    alert("Si le bouton d'installation n'apparaît pas, utilise le menu du navigateur puis 'Ajouter à l'écran d'accueil'.");
-    return;
-  }
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt=null;
-  hideInstallBanner();
-}
-function hideInstallBanner(){
-  localStorage.setItem("st_pwa_install_hidden","1");
-  const b=document.getElementById("installBanner");
-  if(b) b.style.display="none";
-}
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+function applyColors(){
+  document.querySelectorAll(".card[data-ex]").forEach(card=>{
+    const vals=[...card.querySelectorAll("select[id^='v_']")].map(s=>s.value);
+    card.classList.remove("ok","ko","pending");
+    if(vals.every(v=>v==="Oui")) card.classList.add("ok"); else if(vals.some(v=>v==="Non")) card.classList.add("ko"); else card.classList.add("pending");
+    const pct=vals.length?Math.round(vals.filter(v=>v==="Oui").length/vals.length*100):0; const f=card.querySelector(".progress-fill"); if(f) f.style.width=pct+"%";
+    card.querySelectorAll(".set").forEach((set,i)=>{ const v=vals[i]||""; set.classList.remove("ok","ko","pending"); set.classList.add(v==="Oui"?"ok":v==="Non"?"ko":"pending"); });
   });
 }
+function moveSession(n){do{currentDate.setDate(currentDate.getDate()+n)}while(!PROGRAMS[currentDate.getDay()]); renderSession();}
+function goToday(){currentDate=nextTrainingDay(new Date()); renderSession();}
+function applyManualSession(){currentDate=new Date(manualDate.value+"T00:00:00"); state.custom[iso(currentDate)]=Number(manualType.value); saveState(); renderSession();}
+function markAllYes(){document.querySelectorAll("select[id^='v_']").forEach(s=>s.value="Oui"); applyColors();}
+function clearCurrentSession(){const k=iso(currentDate); delete state.sessions[k]; delete state.generated[k]; saveState(); renderSession();}
+function saveSession(){
+  const p=baseProgram(currentDate), k=iso(currentDate), actual={}, results={};
+  p.exercises.forEach((ex,ei)=>{actual[ex.name]=[]; results[ex.name]=[]; ex.sets.forEach((s,si)=>{actual[ex.name].push(Number(document.getElementById(`r_${ei}_${si}`).value)); results[ex.name].push(document.getElementById(`v_${ei}_${si}`).value);});});
+  state.sessions[k]={name:p.name,program:p,actual,results};
+  const nd=new Date(currentDate); nd.setDate(nd.getDate()+7); const nk=iso(nd);
+  state.custom[nk]=sessionKeyForDate(currentDate);
+  state.generated[nk]={name:p.name,exercises:p.exercises.map(ex=>progressExercise(ex,results[ex.name],actual[ex.name]))};
+  saveState(); if(autoSync.checked) syncSheets(); alert("Séance enregistrée. Suivante générée : "+nk);
+}
 
+function addWeight(){if(!weightDate.value||!weightValue.value)return; state.weight=state.weight.filter(x=>x.date!==weightDate.value); state.weight.push({date:weightDate.value,weight:Number(weightValue.value)}); state.weight.sort((a,b)=>a.date.localeCompare(b.date)); saveState(); renderMeasures();}
+function addSteps(){if(!stepsDate.value||!stepsValue.value)return; state.steps[stepsDate.value]=Number(stepsValue.value); saveState(); renderMeasures();}
+function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; drawChart("weightCanvas",state.weight.map(x=>({date:x.date,value:x.weight}))," kg"); drawChart("stepsCanvas",Object.keys(state.steps).sort().map(d=>({date:d,value:state.steps[d]})),"");}
+function drawChart(id,rows,unit){const c=document.getElementById(id),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#aaa"; if(rows.length<2){ctx.fillText("Ajoute au moins 2 valeurs",20,40);return;} const vals=rows.map(r=>r.value),mn=Math.min(...vals),mx=Math.max(...vals),pad=38; ctx.strokeStyle="#ff1a1a";ctx.lineWidth=4;ctx.beginPath();rows.forEach((r,i)=>{const x=pad+i*((c.width-2*pad)/(rows.length-1)), y=c.height-pad-((r.value-mn)/(mx-mn||1))*(c.height-2*pad); if(i)ctx.lineTo(x,y); else ctx.moveTo(x,y);});ctx.stroke();}
+
+function exerciseNames(){const names=new Set(); Object.values(state.sessions).forEach(s=>s.program.exercises.forEach(e=>names.add(e.name))); return [...names].sort();}
+function progressRows(name){const rows=[]; Object.keys(state.sessions).sort().forEach(d=>{const s=state.sessions[d]; const ex=s.program.exercises.find(e=>e.name===name); if(!ex)return; const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[name]?.[i]??set.reps} [${s.results[name]?.[i]||"—"}]`); rows.push({date:d,max:Math.max(...ex.sets.map(x=>x.weight)),line:d+" | "+parts.join(" | ")});}); return rows;}
+function renderProgress(){const names=exerciseNames(); exerciseSelect.innerHTML=names.map(n=>`<option>${n}</option>`).join(""); if(!names.length){progressList.textContent="Aucune séance enregistrée.";return;} const name=exerciseSelect.value||names[0]; exerciseSelect.value=name; const rows=progressRows(name); progressList.textContent=rows.map(r=>r.line).join("\n")||"Aucune donnée"; drawChart("progressCanvas",rows.map(r=>({date:r.date,value:r.max}))," kg");}
+
+function latestWeight(d){let v=null; state.weight.forEach(x=>{if(x.date<=d)v=x.weight;}); return v;}
+function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),...Object.keys(state.steps),...Object.keys(state.sessions)]); const blocks=[...dates].sort().map(d=>{const w=latestWeight(d); const nb=state.steps[d]; const b=[frDateFromIso(d), w!==null?`Poids : ${fmt(w)} kg`:"Poids : ","Calories : 2121kcal","Macros : P: 139g | G: 226g | L: 70g", nb?`Activité : ${nb} pas (compris dans les ${nb} pas, 30 minutes de tapis en zone 2 j'ai brûlé 240 calorie, ça fait 3049 pas)`:"Activité : "]; const s=state.sessions[d]; if(s){b.push(""); b.push("Performances :"); s.program.exercises.forEach(ex=>{const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[ex.name]?.[i]??set.reps} [${s.results[ex.name]?.[i]||"—"}]`); b.push("- "+ex.name+" : "+parts.join(" | "));});} return b.join("\n");}); exportText.textContent=blocks.join("\n\n")||"Aucune donnée";}
+function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
+
+function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
+async function syncSheets(){syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V2 updated",exported_at:new Date().toISOString(),state})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
+weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
+renderSession(); renderMeasures();
 </script>
-</body></html>
+</body>
+</html>

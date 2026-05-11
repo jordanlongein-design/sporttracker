@@ -1,11 +1,10 @@
 {
-  "name": "SportTracker",
+  "name": "SportTracker Mobile V2",
   "short_name": "SportTracker",
-  "description": "Suivi musculation, poids, pas et sync Google Sheets",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#253449",
-  "theme_color": "#253449",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "orientation": "portrait",
   "icons": [
     {
