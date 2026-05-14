@@ -101,13 +101,13 @@ pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:
   <h2>Poids / Pas</h2>
   <div class="card">
     <h3>Poids</h3>
-    <div class="row"><input type="date" id="weightDate"><input type="number" step="0.1" id="weightValue" placeholder="kg"><button onclick="addWeight()">Ajouter</button></div>
+    <div class="row"><input type="date" id="weightDate"><input type="number" step="0.1" id="weightValue" placeholder="kg"><button onclick="addWeight()">Ajouter / Modifier</button><button class="secondary" onclick="deleteWeight()">Supprimer</button></div>
     <canvas id="weightCanvas" width="720" height="220"></canvas>
     <pre id="weightList"></pre>
   </div>
   <div class="card">
     <h3>Pas</h3>
-    <div class="row"><input type="date" id="stepsDate"><input type="number" id="stepsValue" placeholder="pas"><button onclick="addSteps()">Ajouter</button></div>
+    <div class="row"><input type="date" id="stepsDate"><input type="number" id="stepsValue" placeholder="pas"><button onclick="addSteps()">Ajouter / Modifier</button><button class="secondary" onclick="deleteSteps()">Supprimer</button></div>
     <canvas id="stepsCanvas" width="720" height="220"></canvas>
     <pre id="stepsList"></pre>
   </div>
@@ -256,6 +256,25 @@ function saveSession(){
   state.custom[nk]=sessionKeyForDate(currentDate);
   state.generated[nk]={name:p.name,exercises:p.exercises.map(ex=>progressExercise(ex,results[ex.name],actual[ex.name]))};
   saveState(); if(autoSync.checked) syncSheets(); alert("Séance enregistrée. Suivante générée : "+nk);
+}
+
+
+function deleteWeight(){
+  const d = weightDate.value;
+  state.weight = state.weight.filter(x => x.date !== d);
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function deleteSteps(){
+  const d = stepsDate.value;
+  if(state.steps && state.steps[d]){
+    delete state.steps[d];
+  }
+  saveState();
+  renderMeasures();
+  generateExport();
 }
 
 function addWeight(){if(!weightDate.value||!weightValue.value)return; state.weight=state.weight.filter(x=>x.date!==weightDate.value); state.weight.push({date:weightDate.value,weight:Number(weightValue.value)}); state.weight.sort((a,b)=>a.date.localeCompare(b.date)); saveState(); renderMeasures();}
