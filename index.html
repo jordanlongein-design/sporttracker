@@ -284,7 +284,7 @@ function isNoTreadmillDay(d){
 function treadmillLine(d, nb){
   if(!nb) return "Activité : ";
   if(isNoTreadmillDay(d)){
-    return `Activité : ${nb} pas`;
+    return `Activité : ${nb} pas - pas de tapis incliné`;
   }
   return `Activité : ${nb} pas (compris dans les ${nb} pas, 30 minutes de tapis en zone 2 j'ai brûlé 240 calorie, ça fait 3049 pas)`;
 }
