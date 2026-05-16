@@ -121,6 +121,24 @@ pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:
     </div>
     <pre id="noTreadmillList"></pre>
   </div>
+
+  <div class="card">
+    <h3>Diète</h3>
+    <div class="small">Calories et macros du jour.</div>
+    <div class="row" style="margin-top:10px">
+      <input type="date" id="dietDate">
+      <input type="number" id="dietCalories" placeholder="kcal">
+      <input type="number" id="dietProtein" placeholder="P">
+      <input type="number" id="dietCarbs" placeholder="G">
+      <input type="number" id="dietFat" placeholder="L">
+      <input type="number" id="dietFiber" placeholder="F">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="addDiet()">Ajouter / Modifier</button>
+      <button class="secondary" onclick="deleteDiet()">Supprimer</button>
+    </div>
+    <pre id="dietList"></pre>
+  </div>
 </section>
 
 <section id="page-export" class="page">
@@ -189,6 +207,7 @@ const PROGRAMS = {
 };
 
 let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") || '{"sessions":{},"generated":{},"weight":[],"steps":{},"custom":{},"noTreadmill":{}}');
+if(!state.diet) state.diet = {};
 let currentDate = nextTrainingDay(new Date());
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
@@ -279,7 +298,7 @@ function deleteSteps(){
 
 function addWeight(){if(!weightDate.value||!weightValue.value)return; state.weight=state.weight.filter(x=>x.date!==weightDate.value); state.weight.push({date:weightDate.value,weight:Number(weightValue.value)}); state.weight.sort((a,b)=>a.date.localeCompare(b.date)); saveState(); renderMeasures();}
 function addSteps(){if(!stepsDate.value||!stepsValue.value)return; state.steps[stepsDate.value]=Number(stepsValue.value); saveState(); renderMeasures();}
-function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } drawChart("weightCanvas",state.weight.map(x=>({date:x.date,value:x.weight}))," kg"); drawChart("stepsCanvas",Object.keys(state.steps).sort().map(d=>({date:d,value:state.steps[d]})),"");}
+function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } if(typeof dietDate!=="undefined") dietDate.value ||= iso(new Date()); if(typeof dietList!=="undefined"){ const diet=state.diet||{}; dietList.textContent=Object.keys(diet).sort().map(d=>{const x=diet[d]; return `${d} : ${x.calories||""} kcal | P:${x.protein||""} | G:${x.carbs||""} | L:${x.fat||""} | F:${x.fiber||""}`;}).join("\n")||"Aucune donnée diète."; } drawChart("weightCanvas",state.weight.map(x=>({date:x.date,value:x.weight}))," kg"); drawChart("stepsCanvas",Object.keys(state.steps).sort().map(d=>({date:d,value:state.steps[d]})),"");}
 function drawChart(id,rows,unit){const c=document.getElementById(id),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#aaa"; if(rows.length<2){ctx.fillText("Ajoute au moins 2 valeurs",20,40);return;} const vals=rows.map(r=>r.value),mn=Math.min(...vals),mx=Math.max(...vals),pad=38; ctx.strokeStyle="#ff1a1a";ctx.lineWidth=4;ctx.beginPath();rows.forEach((r,i)=>{const x=pad+i*((c.width-2*pad)/(rows.length-1)), y=c.height-pad-((r.value-mn)/(mx-mn||1))*(c.height-2*pad); if(i)ctx.lineTo(x,y); else ctx.moveTo(x,y);});ctx.stroke();}
 
 function exerciseNames(){const names=new Set(); Object.values(state.sessions).forEach(s=>s.program.exercises.forEach(e=>names.add(e.name))); return [...names].sort();}
@@ -308,12 +327,49 @@ function treadmillLine(d, nb){
   return `Activité : ${nb} pas (compris dans les ${nb} pas, 30 minutes de tapis en zone 2 j'ai brûlé 240 calorie, ça fait 3049 pas)`;
 }
 
+
+function addDiet(){
+  if(!state.diet) state.diet = {};
+  const d = dietDate.value || iso(new Date());
+  state.diet[d] = {
+    calories: Number(dietCalories.value || 0),
+    protein: Number(dietProtein.value || 0),
+    carbs: Number(dietCarbs.value || 0),
+    fat: Number(dietFat.value || 0),
+    fiber: Number(dietFiber.value || 0)
+  };
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function deleteDiet(){
+  const d = dietDate.value || iso(new Date());
+  if(state.diet && state.diet[d]){
+    delete state.diet[d];
+  }
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function dietLines(d){
+  const item = state.diet && state.diet[d] ? state.diet[d] : null;
+  if(!item){
+    return ["Calories : ", "Macros : P :  | G :  | L :  | F : "];
+  }
+  return [
+    `Calories : ${item.calories || ""} kcal`,
+    `Macros : P : ${item.protein || ""}g | G : ${item.carbs || ""}g | L : ${item.fat || ""}g | F : ${item.fiber || ""}g`
+  ];
+}
+
 function latestWeight(d){let v=null; state.weight.forEach(x=>{if(x.date<=d)v=x.weight;}); return v;}
-function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),...Object.keys(state.steps),...Object.keys(state.sessions)]); const blocks=[...dates].sort().map(d=>{const w=latestWeight(d); const nb=state.steps[d]; const b=[frDateFromIso(d), w!==null?`Poids : ${fmt(w)} kg`:"Poids : ","Calories : 2121kcal","Macros : P: 139g | G: 226g | L: 70g", treadmillLine(d, nb)]; const s=state.sessions[d]; if(s){b.push(""); b.push("Performances :"); s.program.exercises.forEach(ex=>{const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[ex.name]?.[i]??set.reps} [${s.results[ex.name]?.[i]||"—"}]`); b.push("- "+ex.name+" : "+parts.join(" | "));});} return b.join("\n");}); exportText.textContent=blocks.join("\n\n")||"Aucune donnée";}
+function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),...Object.keys(state.steps),...Object.keys(state.sessions)]); const blocks=[...dates].sort().map(d=>{const w=latestWeight(d); const nb=state.steps[d]; const b=[frDateFromIso(d), w!==null?`Poids : ${fmt(w)} kg`:"Poids : ", ...dietLines(d), treadmillLine(d, nb)]; const s=state.sessions[d]; if(s){b.push(""); b.push("Performances :"); s.program.exercises.forEach(ex=>{const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[ex.name]?.[i]??set.reps} [${s.results[ex.name]?.[i]||"—"}]`); b.push("- "+ex.name+" : "+parts.join(" | "));});} return b.join("\n");}); exportText.textContent=blocks.join("\n\n")||"Aucune donnée";}
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V3 tapis/export",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V4 diet",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
