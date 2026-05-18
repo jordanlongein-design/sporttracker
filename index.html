@@ -139,6 +139,23 @@ pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:
     </div>
     <pre id="dietList"></pre>
   </div>
+
+  <div class="card">
+    <h3>Sommeil</h3>
+    <div class="small">Saisie quotidienne : total, REM, léger, profond.</div>
+    <div class="row" style="margin-top:10px">
+      <input type="date" id="sleepDate">
+      <input type="text" id="sleepTotal" placeholder="Total ex: 8h11">
+      <input type="text" id="sleepRem" placeholder="REM ex: 1h23">
+      <input type="text" id="sleepLight" placeholder="Léger ex: 4h11">
+      <input type="text" id="sleepDeep" placeholder="Profond ex: 2h37">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="addSleep()">Ajouter / Modifier</button>
+      <button class="secondary" onclick="deleteSleep()">Supprimer</button>
+    </div>
+    <pre id="sleepList"></pre>
+  </div>
 </section>
 
 <section id="page-export" class="page">
@@ -208,6 +225,7 @@ const PROGRAMS = {
 
 let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") || '{"sessions":{},"generated":{},"weight":[],"steps":{},"custom":{},"noTreadmill":{}}');
 if(!state.diet) state.diet = {};
+if(!state.sleep) state.sleep = {};
 let currentDate = nextTrainingDay(new Date());
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
@@ -298,7 +316,16 @@ function deleteSteps(){
 
 function addWeight(){if(!weightDate.value||!weightValue.value)return; state.weight=state.weight.filter(x=>x.date!==weightDate.value); state.weight.push({date:weightDate.value,weight:Number(weightValue.value)}); state.weight.sort((a,b)=>a.date.localeCompare(b.date)); saveState(); renderMeasures();}
 function addSteps(){if(!stepsDate.value||!stepsValue.value)return; state.steps[stepsDate.value]=Number(stepsValue.value); saveState(); renderMeasures();}
-function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } if(typeof dietDate!=="undefined") dietDate.value ||= iso(new Date()); if(typeof dietList!=="undefined"){ const diet=state.diet||{}; dietList.textContent=Object.keys(diet).sort().map(d=>{const x=diet[d]; return `${d} : ${x.calories||""} kcal | P:${x.protein||""} | G:${x.carbs||""} | L:${x.fat||""} | F:${x.fiber||""}`;}).join("\n")||"Aucune donnée diète."; } drawChart("weightCanvas",state.weight.map(x=>({date:x.date,value:x.weight}))," kg"); drawChart("stepsCanvas",Object.keys(state.steps).sort().map(d=>({date:d,value:state.steps[d]})),"");}
+function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } if(typeof dietDate!=="undefined") dietDate.value ||= iso(new Date()); if(typeof dietList!=="undefined"){ const diet=state.diet||{}; dietList.textContent=Object.keys(diet).sort().map(d=>{const x=diet[d]; return `${d} : ${x.calories||""} kcal | P:${x.protein||""} | G:${x.carbs||""} | L:${x.fat||""} | F:${x.fiber||""}`;}).join("\n")||"Aucune donnée diète."; } if(typeof sleepDate!=="undefined") sleepDate.value ||= iso(new Date());
+  if(typeof sleepList!=="undefined"){
+    const sleep=state.sleep||{};
+    sleepList.textContent=Object.keys(sleep).sort().map(d=>{
+      const x=sleep[d];
+      return `${d} : Total ${x.total||""} | REM ${x.rem||""} | Léger ${x.light||""} | Profond ${x.deep||""}`;
+    }).join("\n")||"Aucune donnée sommeil.";
+  }
+
+  drawChart("weightCanvas",state.weight.map(x=>({date:x.date,value:x.weight}))," kg"); drawChart("stepsCanvas",Object.keys(state.steps).sort().map(d=>({date:d,value:state.steps[d]})),"");}
 function drawChart(id,rows,unit){const c=document.getElementById(id),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#aaa"; if(rows.length<2){ctx.fillText("Ajoute au moins 2 valeurs",20,40);return;} const vals=rows.map(r=>r.value),mn=Math.min(...vals),mx=Math.max(...vals),pad=38; ctx.strokeStyle="#ff1a1a";ctx.lineWidth=4;ctx.beginPath();rows.forEach((r,i)=>{const x=pad+i*((c.width-2*pad)/(rows.length-1)), y=c.height-pad-((r.value-mn)/(mx-mn||1))*(c.height-2*pad); if(i)ctx.lineTo(x,y); else ctx.moveTo(x,y);});ctx.stroke();}
 
 function exerciseNames(){const names=new Set(); Object.values(state.sessions).forEach(s=>s.program.exercises.forEach(e=>names.add(e.name))); return [...names].sort();}
@@ -364,12 +391,48 @@ function dietLines(d){
   ];
 }
 
+
+function addSleep(){
+  if(!state.sleep) state.sleep = {};
+  const d = sleepDate.value || iso(new Date());
+  state.sleep[d] = {
+    total: sleepTotal.value || "",
+    rem: sleepRem.value || "",
+    light: sleepLight.value || "",
+    deep: sleepDeep.value || ""
+  };
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function deleteSleep(){
+  const d = sleepDate.value || iso(new Date());
+  if(state.sleep && state.sleep[d]){
+    delete state.sleep[d];
+  }
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function sleepLines(d){
+  const item = state.sleep && state.sleep[d] ? state.sleep[d] : null;
+  if(!item){
+    return ["Sommeil : ", "Récupération : REM  | Léger  | Profond "];
+  }
+  return [
+    `Sommeil : ${item.total || ""}`,
+    `Récupération : REM ${item.rem || ""} | Léger ${item.light || ""} | Profond ${item.deep || ""}`
+  ];
+}
+
 function latestWeight(d){let v=null; state.weight.forEach(x=>{if(x.date<=d)v=x.weight;}); return v;}
-function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),...Object.keys(state.steps),...Object.keys(state.sessions)]); const blocks=[...dates].sort().map(d=>{const w=latestWeight(d); const nb=state.steps[d]; const b=[frDateFromIso(d), w!==null?`Poids : ${fmt(w)} kg`:"Poids : ", ...dietLines(d), treadmillLine(d, nb)]; const s=state.sessions[d]; if(s){b.push(""); b.push("Performances :"); s.program.exercises.forEach(ex=>{const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[ex.name]?.[i]??set.reps} [${s.results[ex.name]?.[i]||"—"}]`); b.push("- "+ex.name+" : "+parts.join(" | "));});} return b.join("\n");}); exportText.textContent=blocks.join("\n\n")||"Aucune donnée";}
+function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),...Object.keys(state.steps),...Object.keys(state.sessions)]); const blocks=[...dates].sort().map(d=>{const w=latestWeight(d); const nb=state.steps[d]; const b=[frDateFromIso(d), w!==null?`Poids : ${fmt(w)} kg`:"Poids : ", ...dietLines(d), ...sleepLines(d), treadmillLine(d, nb)]; const s=state.sessions[d]; if(s){b.push(""); b.push("Performances :"); s.program.exercises.forEach(ex=>{const parts=ex.sets.map((set,i)=>`S${i+1}: ${fmt(set.weight)}kg x ${s.actual[ex.name]?.[i]??set.reps} [${s.results[ex.name]?.[i]||"—"}]`); b.push("- "+ex.name+" : "+parts.join(" | "));});} return b.join("\n");}); exportText.textContent=blocks.join("\n\n")||"Aucune donnée";}
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V4 diet",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
