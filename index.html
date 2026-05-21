@@ -56,7 +56,7 @@ pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:
 </head>
 <body>
 <header>
-  <h1>SportTracker <span style="color:var(--red)">Mobile V2</span></h1>
+  <h1>SportTracker <span style="color:var(--red)">Mobile V5.1</span></h1>
   <div class="sub" id="headerDate"></div>
 </header>
 
@@ -238,17 +238,62 @@ function frDateFromIso(s){const d=new Date(s+"T00:00:00"); const months=["janvie
 function sessionKeyForDate(d){return state.custom[iso(d)] ?? d.getDay();}
 function baseProgram(d){const k=iso(d); if(state.generated[k]) return clone(state.generated[k]); return clone(PROGRAMS[sessionKeyForDate(d)]);}
 
+function isFridayBackRow(ex){
+  return ex && ex.name === "Tirage horizontal (dos)" && ex.type === "cascade";
+}
+
 function progressExercise(ex, results, actual){
   const n=clone(ex), tops=ex.ranges.map(r=>r[1]), mins=ex.ranges.map(r=>r[0]);
   if(results.some(x=>x==="Non") || !results.every(x=>x==="Oui")){n.note="Échec/incomplet : charge conservée"; return n;}
   if(ex.type==="technique"){ for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Technique : charge conservée"; return n; }
-  if(ex.type==="cascade"){ 
+
+  // CORRECTION V5.1 : uniquement Tirage horizontal (dos) du vendredi.
+  // Règle cascade voulue : S1 monte, S2 reprend ancienne S1, S3 reprend ancienne S2,
+  // et les reps reviennent au minimum de chaque range : 4 / 6 / 8.
+  if(isFridayBackRow(ex) && ex.sets.length >= 3){
+    const old=clone(ex.sets);
+    n.sets[0].weight=+(old[0].weight + ex.increment).toFixed(2);
+    n.sets[1].weight=+old[0].weight;
+    n.sets[2].weight=+old[1].weight;
+    for(let i=0;i<3;i++) n.sets[i].reps=mins[i];
+    n.note="Cascade tirage dos : montée complète";
+    return n;
+  }
+
+  if(ex.type==="cascade"){
     for(let i=0;i<3;i++){ if(actual[i]>=tops[i]){ n.sets[i].weight=+(n.sets[i].weight+ex.increment).toFixed(2); n.sets[i].reps=mins[i]; for(let j=i+1;j<3;j++) n.sets[j].reps=Math.max(mins[j], actual[j]-1); n.note="Cascade : montée S"+(i+1); return n; } }
     for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Cascade : +1 rep cible"; return n;
   }
   if(actual.every((r,i)=>r>=tops[i])){ for(let i=0;i<3;i++){n.sets[i].weight=+(n.sets[i].weight+ex.increment).toFixed(2); n.sets[i].reps=mins[i];} n.note="Direct : montée charge"; }
   else { for(let i=0;i<3;i++) n.sets[i].reps=Math.min(tops[i], actual[i]+1); n.note="Direct : +1 rep cible"; }
   return n;
+}
+
+
+function repairFridayBackRowGenerated(){
+  if(!state || !state.generated || !state.sessions) return;
+  const dates=Object.keys(state.sessions).sort();
+  let changed=false;
+  dates.forEach(d=>{
+    const cur=state.sessions[d];
+    if(!cur || !cur.program || !cur.program.exercises) return;
+    const ex=cur.program.exercises.find(e=>isFridayBackRow(e));
+    if(!ex) return;
+    const res=(cur.results && cur.results[ex.name]) || [];
+    const act=(cur.actual && cur.actual[ex.name]) || [];
+    if(!res.every(x=>x==="Oui")) return;
+    const nd=new Date(d+"T00:00:00");
+    nd.setDate(nd.getDate()+7);
+    const nk=iso(nd);
+    if(!state.generated[nk]) return;
+    const nextEx=state.generated[nk].exercises && state.generated[nk].exercises.find(e=>isFridayBackRow(e));
+    if(!nextEx) return;
+    const fixed=progressExercise(ex, res, act);
+    nextEx.sets=fixed.sets;
+    nextEx.note=fixed.note;
+    changed=true;
+  });
+  if(changed) saveState();
 }
 
 function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById("page-"+id).classList.add("active"); document.querySelectorAll(".bottom button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); if(id==="progress") renderProgress(); if(id==="measures") renderMeasures(); if(id==="export") generateExport();}
@@ -432,10 +477,11 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.1 tirage dos fix",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
+repairFridayBackRowGenerated();
 renderSession(); renderMeasures();
 </script>
 </body>

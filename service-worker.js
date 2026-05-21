@@ -1,4 +1,4 @@
-const CACHE_NAME='sporttracker-mobile-v5-sleep-20260517';
+const CACHE_NAME='sporttracker-mobile-v5-1-tirage-dos-fix-20260521';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim();});
