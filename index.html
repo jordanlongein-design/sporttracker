@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V5.7</title>
+<title>SportTracker Mobile V5.8</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -228,6 +228,7 @@ if(!state.diet) state.diet = {};
 if(!state.sleep) state.sleep = {};
 let currentDate = nextTrainingDay(new Date());
 repairSpecialCascadeGeneratedSessions();
+repairSmithBenchSpecificLoads();
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
 function iso(d){return d.toISOString().slice(0,10);}
@@ -374,6 +375,41 @@ function repairSpecialCascadeGeneratedSessions(){
 
       state.generated[date] = session;
     });
+  });
+
+  saveState();
+}
+
+
+function repairSmithBenchSpecificLoads(){
+  if(!state || !state.generated) return;
+
+  const wanted = {
+    "2026-05-25": { reps:[4,6,8], weights:[20,17.5,16.25] },
+    "2026-06-01": { reps:[5,7,9], weights:[20,17.5,16.25] },
+    "2026-06-08": { reps:[6,8,10], weights:[20,17.5,16.25] },
+    "2026-06-15": { reps:[4,6,8], weights:[21.25,18.75,17.5] }
+  };
+
+  Object.keys(wanted).forEach(function(date){
+    const session = state.generated[date];
+    if(!session || !session.exercises) return;
+
+    const ex = session.exercises.find(function(e){
+      return e && e.name === "Développé couché (Smith machine)";
+    });
+
+    if(!ex || !ex.sets || ex.sets.length < 3) return;
+
+    const w = wanted[date];
+
+    for(let i=0;i<3;i++){
+      ex.sets[i].reps = w.reps[i];
+      ex.sets[i].weight = w.weights[i];
+    }
+
+    ex.ranges = [[4,6],[6,8],[8,10]];
+    ex.note = "Cascade : Smith corrigé";
   });
 
   saveState();
@@ -560,7 +596,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.7 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.8 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
