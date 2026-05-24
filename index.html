@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V5.6</title>
+<title>SportTracker Mobile V5.7</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -260,7 +260,7 @@ function progressExercise(ex, results, actual){
     // Règle :
     // si full haut de range => toutes les charges + incrément, reps reset au minimum
     // sinon => +1 rep sur chaque série.
-    if(ex.name==="Tirage horizontal (dos)" || ex.name==="Overhead press (machine)"){
+    if(ex.name==="Tirage horizontal (dos)" || ex.name==="Overhead press (machine)" || ex.name==="Développé couché (Smith machine)"){
       if(actual.every((r,i)=>r>=tops[i])){
         for(let i=0;i<3;i++){
           n.sets[i].weight = +(Number(ex.sets[i].weight) + ex.increment).toFixed(2);
@@ -316,6 +316,12 @@ function repairSpecialCascadeGeneratedSessions(){
     {
       day: 1,
       name: "Overhead press (machine)",
+      baseDate: "2026-05-18",
+      programDay: 1
+    },
+    {
+      day: 1,
+      name: "Développé couché (Smith machine)",
       baseDate: "2026-05-18",
       programDay: 1
     },
@@ -554,7 +560,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.6 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.7 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
