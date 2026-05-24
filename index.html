@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V5.5</title>
+<title>SportTracker Mobile V5.6</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -227,7 +227,7 @@ let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") ||
 if(!state.diet) state.diet = {};
 if(!state.sleep) state.sleep = {};
 let currentDate = nextTrainingDay(new Date());
-repairFridayBackRowGeneratedSessions();
+repairSpecialCascadeGeneratedSessions();
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
 function iso(d){return d.toISOString().slice(0,10);}
@@ -256,31 +256,24 @@ function progressExercise(ex, results, actual){
   if(ex.type==="cascade"){
 
     // CORRECTION CIBLÉE UNIQUEMENT :
-    // Tirage horizontal (dos)
-    // Si toutes les séries atteignent le haut de range :
-    // 65/60/55 avec 6/8/10 -> 70/65/60 avec 4/6/8
-    // Puis progression reps : 5/7/9, puis 6/8/10.
+    // Tirage horizontal (dos) + Overhead press (machine)
+    // Règle :
+    // si full haut de range => toutes les charges + incrément, reps reset au minimum
+    // sinon => +1 rep sur chaque série.
     if(ex.name==="Tirage horizontal (dos)" || ex.name==="Overhead press (machine)"){
       if(actual.every((r,i)=>r>=tops[i])){
-        const oldS1 = Number(ex.sets[0].weight);
-        const oldS2 = Number(ex.sets[1].weight);
-
-        n.sets[0].weight = +(oldS1 + ex.increment).toFixed(2);
-        n.sets[1].weight = +oldS1.toFixed(2);
-        n.sets[2].weight = +oldS2.toFixed(2);
-
-        n.sets[0].reps = mins[0];
-        n.sets[1].reps = mins[1];
-        n.sets[2].reps = mins[2];
-
-        n.note="Cascade : tirage dos montée charges";
+        for(let i=0;i<3;i++){
+          n.sets[i].weight = +(Number(ex.sets[i].weight) + ex.increment).toFixed(2);
+          n.sets[i].reps = mins[i];
+        }
+        n.note = "Cascade : montée charges complète";
         return n;
       }
 
       for(let i=0;i<3;i++){
         n.sets[i].reps = Math.min(tops[i], actual[i]+1);
       }
-      n.note="Cascade : tirage dos +1 rep";
+      n.note = "Cascade : +1 rep cible";
       return n;
     }
 
@@ -316,49 +309,65 @@ function progressExercise(ex, results, actual){
 }
 
 
-function repairFridayBackRowGeneratedSessions(){
+function repairSpecialCascadeGeneratedSessions(){
   if(!state || !state.generated) return;
 
-  const base = PROGRAMS[5].exercises.find(e=>e.name==="Tirage horizontal (dos)");
-  if(!base || !base.sets || base.sets.length<3) return;
+  const repairs = [
+    {
+      day: 1,
+      name: "Overhead press (machine)",
+      baseDate: "2026-05-18",
+      programDay: 1
+    },
+    {
+      day: 5,
+      name: "Tirage horizontal (dos)",
+      baseDate: "2026-05-15",
+      programDay: 5
+    }
+  ];
 
-  const baseDate = "2026-05-15";
-  const baseTime = new Date(baseDate+"T12:00:00").getTime();
+  repairs.forEach(function(cfg){
+    const base = PROGRAMS[cfg.programDay].exercises.find(e=>e.name===cfg.name);
+    if(!base || !base.sets || base.sets.length<3) return;
 
-  Object.keys(state.generated).sort().forEach(function(date){
-    const d = new Date(date+"T12:00:00");
-    if(d.getDay() !== 5) return;
-    if(d.getTime() <= baseTime) return;
+    const baseTime = new Date(cfg.baseDate+"T12:00:00").getTime();
 
-    const weeks = Math.round((d.getTime() - baseTime) / (7*24*60*60*1000));
-    if(weeks < 1) return;
+    Object.keys(state.generated).sort().forEach(function(date){
+      const d = new Date(date+"T12:00:00");
+      if(d.getDay() !== cfg.day) return;
+      if(d.getTime() <= baseTime) return;
 
-    const session = state.generated[date];
-    if(!session || !session.exercises) return;
+      const weeks = Math.round((d.getTime() - baseTime) / (7*24*60*60*1000));
+      if(weeks < 1) return;
 
-    const ex = session.exercises.find(e=>e && (e.name==="Tirage horizontal (dos)" || e.name==="Overhead press (machine)"));
-    if(!ex || !ex.sets || ex.sets.length<3) return;
+      const session = state.generated[date];
+      if(!session || !session.exercises) return;
 
-    // Cycle attendu :
-    // Semaine 1 : 4/6/8 à 70/65/60
-    // Semaine 2 : 5/7/9 à 70/65/60
-    // Semaine 3 : 6/8/10 à 70/65/60
-    // Semaine 4 : 4/6/8 à 75/70/65
-    const loadStep = Math.ceil(weeks / 3);
-    const repStep = (weeks - 1) % 3;
+      const ex = session.exercises.find(e=>e && e.name===cfg.name);
+      if(!ex || !ex.sets || ex.sets.length<3) return;
 
-    ex.sets[0].weight = +(base.sets[0].weight + loadStep * base.increment).toFixed(2);
-    ex.sets[1].weight = +(base.sets[1].weight + loadStep * base.increment).toFixed(2);
-    ex.sets[2].weight = +(base.sets[2].weight + loadStep * base.increment).toFixed(2);
+      // Cycle :
+      // semaine 1 : charges +1 incrément, reps 4/6/8
+      // semaine 2 : mêmes charges, reps 5/7/9
+      // semaine 3 : mêmes charges, reps 6/8/10
+      // semaine 4 : charges +2 incréments, reps 4/6/8
+      const loadStep = Math.ceil(weeks / 3);
+      const repStep = (weeks - 1) % 3;
 
-    ex.sets[0].reps = 4 + repStep;
-    ex.sets[1].reps = 6 + repStep;
-    ex.sets[2].reps = 8 + repStep;
+      for(let i=0;i<3;i++){
+        ex.sets[i].weight = +(Number(base.sets[i].weight) + loadStep * base.increment).toFixed(2);
+      }
 
-    ex.ranges = [[4,6],[6,8],[8,10]];
-    ex.note = "Cascade : tirage dos réparé";
+      ex.sets[0].reps = 4 + repStep;
+      ex.sets[1].reps = 6 + repStep;
+      ex.sets[2].reps = 8 + repStep;
 
-    state.generated[date] = session;
+      ex.ranges = [[4,6],[6,8],[8,10]];
+      ex.note = "Cascade : progression complète réparée";
+
+      state.generated[date] = session;
+    });
   });
 
   saveState();
@@ -545,7 +554,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.6 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
