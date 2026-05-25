@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V5.8</title>
+<title>SportTracker Mobile V5.9</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -229,6 +229,7 @@ if(!state.sleep) state.sleep = {};
 let currentDate = nextTrainingDay(new Date());
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
+repairOiseauMachineProgression();
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
 function iso(d){return d.toISOString().slice(0,10);}
@@ -415,6 +416,43 @@ function repairSmithBenchSpecificLoads(){
   saveState();
 }
 
+
+function repairOiseauMachineProgression(){
+  if(!state || !state.generated) return;
+
+  const targets = {
+    "2026-05-25":[10,10,10],
+    "2026-06-01":[11,11,11],
+    "2026-06-08":[12,12,12],
+    "2026-06-15":[13,13,13],
+    "2026-06-22":[14,14,14],
+    "2026-06-29":[15,15,15]
+  };
+
+  Object.keys(targets).forEach(function(date){
+    const session = state.generated[date];
+    if(!session || !session.exercises) return;
+
+    const ex = session.exercises.find(function(e){
+      return e && e.name === "Oiseau assis prise neutre";
+    });
+
+    if(!ex || !ex.sets || ex.sets.length < 3) return;
+
+    const reps = targets[date];
+
+    for(let i=0;i<3;i++){
+      ex.sets[i].reps = reps[i];
+      ex.sets[i].weight = 12;
+    }
+
+    ex.ranges = [[10,15],[10,15],[10,15]];
+    ex.note = "Direct : oiseau machine 12 kg";
+  });
+
+  saveState();
+}
+
 function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById("page-"+id).classList.add("active"); document.querySelectorAll(".bottom button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); if(id==="progress") renderProgress(); if(id==="measures") renderMeasures(); if(id==="export") generateExport();}
 function renderSession(){
   const p=baseProgram(currentDate), k=iso(currentDate), saved=state.sessions[k];
@@ -596,7 +634,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.8 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V5.9 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
