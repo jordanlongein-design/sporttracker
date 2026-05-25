@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V6.1.1</title>
+<title>SportTracker Mobile V6.2</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -226,11 +226,10 @@ const PROGRAMS = {
 let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") || '{"sessions":{},"generated":{},"weight":[],"steps":{},"custom":{},"noTreadmill":{}}');
 if(!state.diet) state.diet = {};
 if(!state.sleep) state.sleep = {};
-jordanHardFix_20260525();
 let currentDate = nextTrainingDay(new Date());
+repairJordanSession25May();
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
-repairOiseauMachineProgression();
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
 function iso(d){return d.toISOString().slice(0,10);}
@@ -240,7 +239,77 @@ function nextTrainingDay(d){let x=new Date(d); for(let i=0;i<8;i++){if(PROGRAMS[
 function dayLabel(d){return ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][d.getDay()];}
 function frDateFromIso(s){const d=new Date(s+"T00:00:00"); const months=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"]; return dayLabel(d).charAt(0).toUpperCase()+dayLabel(d).slice(1)+" "+d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();}
 function sessionKeyForDate(d){return state.custom[iso(d)] ?? d.getDay();}
-function baseProgram(d){const k=iso(d); if(state.generated[k]) return clone(state.generated[k]); return clone(PROGRAMS[sessionKeyForDate(d)]);}
+
+function applyJordanManualPatch(k, p){
+  if(k !== "2026-05-25" || !p || !p.exercises) return p;
+
+  const fixes = {
+    "Overhead press (machine)": [
+      {reps:4, weight:35},
+      {reps:6, weight:32.5},
+      {reps:8, weight:31.25}
+    ],
+    "Développé couché (Smith machine)": [
+      {reps:4, weight:20},
+      {reps:6, weight:17.5},
+      {reps:8, weight:16.25}
+    ],
+    "Curl prise marteau (cycle amplitude 1)": [
+      {reps:10, weight:20},
+      {reps:10, weight:20},
+      {reps:10, weight:20}
+    ],
+    "Oiseau assis prise neutre": [
+      {reps:10, weight:12},
+      {reps:10, weight:12},
+      {reps:10, weight:12}
+    ],
+    "Rowing prise large": [
+      {reps:12, weight:35},
+      {reps:12, weight:35},
+      {reps:12, weight:35}
+    ]
+  };
+
+  Object.keys(fixes).forEach(function(exName){
+    const ex = p.exercises.find(function(e){ return e && e.name === exName; });
+    if(!ex || !ex.sets || ex.sets.length < 3) return;
+
+    fixes[exName].forEach(function(v, i){
+      ex.sets[i].reps = v.reps;
+      ex.sets[i].weight = v.weight;
+    });
+
+    if(exName === "Curl prise marteau (cycle amplitude 1)"){
+      ex.ranges = [[8,12],[8,12],[8,12]];
+    }
+    if(exName === "Oiseau assis prise neutre" || exName === "Rowing prise large"){
+      ex.ranges = [[10,15],[10,15],[10,15]];
+    }
+    if(exName === "Overhead press (machine)" || exName === "Développé couché (Smith machine)"){
+      ex.ranges = [[4,6],[6,8],[8,10]];
+    }
+
+    ex.note = "Correction séance du 25 mai";
+  });
+
+  return p;
+}
+
+function repairJordanSession25May(){
+  if(!state) return;
+
+  const k = "2026-05-25";
+  const existing = state.generated && state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[1]);
+  const patched = applyJordanManualPatch(k, existing);
+
+  if(!state.generated) state.generated = {};
+  state.generated[k] = patched;
+
+  saveState();
+}
+
+function baseProgram(d){const k=iso(d); const p = state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[sessionKeyForDate(d)]); return applyJordanManualPatch(k, p);}
 
 function progressExercise(ex, results, actual){
   const n=clone(ex), tops=ex.ranges.map(r=>r[1]), mins=ex.ranges.map(r=>r[0]);
@@ -417,136 +486,6 @@ function repairSmithBenchSpecificLoads(){
   saveState();
 }
 
-
-function repairOiseauMachineProgression(){
-  if(!state || !state.generated) return;
-
-  const targets = {
-    "2026-05-25":[10,10,10],
-    "2026-06-01":[11,11,11],
-    "2026-06-08":[12,12,12],
-    "2026-06-15":[13,13,13],
-    "2026-06-22":[14,14,14],
-    "2026-06-29":[15,15,15]
-  };
-
-  Object.keys(targets).forEach(function(date){
-    const session = state.generated[date];
-    if(!session || !session.exercises) return;
-
-    const ex = session.exercises.find(function(e){
-      return e && e.name === "Oiseau assis prise neutre";
-    });
-
-    if(!ex || !ex.sets || ex.sets.length < 3) return;
-
-    const reps = targets[date];
-
-    for(let i=0;i<3;i++){
-      ex.sets[i].reps = reps[i];
-      ex.sets[i].weight = 12;
-    }
-
-    ex.ranges = [[10,15],[10,15],[10,15]];
-    ex.note = "Direct : oiseau machine 12 kg";
-  });
-
-  saveState();
-}
-
-
-function jordanHardFix_20260525(){
-  try{
-    if(!state) return;
-    if(!state.generated) state.generated = {};
-
-    const fixes = {
-      "2026-05-25": {
-        "Overhead press (machine)": [
-          {reps:4, weight:35},
-          {reps:6, weight:32.5},
-          {reps:8, weight:31.25}
-        ],
-        "Développé couché (Smith machine)": [
-          {reps:4, weight:20},
-          {reps:6, weight:17.5},
-          {reps:8, weight:16.25}
-        ],
-        "Oiseau assis prise neutre": [
-          {reps:10, weight:12},
-          {reps:10, weight:12},
-          {reps:10, weight:12}
-        ]
-      },
-      "2026-06-01": {
-        "Oiseau assis prise neutre": [
-          {reps:11, weight:12},
-          {reps:11, weight:12},
-          {reps:11, weight:12}
-        ]
-      },
-      "2026-06-08": {
-        "Oiseau assis prise neutre": [
-          {reps:12, weight:12},
-          {reps:12, weight:12},
-          {reps:12, weight:12}
-        ]
-      },
-      "2026-06-15": {
-        "Oiseau assis prise neutre": [
-          {reps:13, weight:12},
-          {reps:13, weight:12},
-          {reps:13, weight:12}
-        ]
-      },
-      "2026-06-22": {
-        "Oiseau assis prise neutre": [
-          {reps:14, weight:12},
-          {reps:14, weight:12},
-          {reps:14, weight:12}
-        ]
-      },
-      "2026-06-29": {
-        "Oiseau assis prise neutre": [
-          {reps:15, weight:12},
-          {reps:15, weight:12},
-          {reps:15, weight:12}
-        ]
-      }
-    };
-
-    Object.keys(fixes).forEach(function(date){
-      const session = state.generated[date] || state.sessions[date];
-      if(!session || !session.exercises) return;
-
-      Object.keys(fixes[date]).forEach(function(exName){
-        const ex = session.exercises.find(function(e){ return e && e.name === exName; });
-        if(!ex || !ex.sets || ex.sets.length < 3) return;
-
-        fixes[date][exName].forEach(function(v, i){
-          ex.sets[i].reps = v.reps;
-          ex.sets[i].weight = v.weight;
-        });
-
-        if(exName === "Oiseau assis prise neutre"){
-          ex.ranges = [[10,15],[10,15],[10,15]];
-        } else {
-          ex.ranges = [[4,6],[6,8],[8,10]];
-        }
-
-        ex.note = "Correction manuelle Jordan V6.1";
-      });
-
-      if(state.generated[date]) state.generated[date] = session;
-      if(state.sessions[date]) state.sessions[date] = session;
-    });
-
-    saveState();
-  }catch(e){
-    console.error("jordanHardFix_20260525 error", e);
-  }
-}
-
 function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById("page-"+id).classList.add("active"); document.querySelectorAll(".bottom button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); if(id==="progress") renderProgress(); if(id==="measures") renderMeasures(); if(id==="export") generateExport();}
 function renderSession(){
   const p=baseProgram(currentDate), k=iso(currentDate), saved=state.sessions[k];
@@ -576,8 +515,7 @@ function applyColors(){
     card.querySelectorAll(".set").forEach((set,i)=>{ const v=vals[i]||""; set.classList.remove("ok","ko","pending"); set.classList.add(v==="Oui"?"ok":v==="Non"?"ko":"pending"); });
   });
 }
-function moveSession(n){do{currentDate.setDate(currentDate.getDate()+n)}while(!PROGRAMS[currentDate.getDay()]); jordanHardFix_20260525();
-  renderSession();}
+function moveSession(n){do{currentDate.setDate(currentDate.getDate()+n)}while(!PROGRAMS[currentDate.getDay()]); renderSession();}
 function goToday(){currentDate=nextTrainingDay(new Date()); renderSession();}
 function applyManualSession(){currentDate=new Date(manualDate.value+"T00:00:00"); state.custom[iso(currentDate)]=Number(manualType.value); saveState(); renderSession();}
 function markAllYes(){document.querySelectorAll("select[id^='v_']").forEach(s=>s.value="Oui"); applyColors();}
@@ -729,13 +667,11 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.1.1 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
-
-window.addEventListener('load', jordanHardFix_20260525);
 </script>
 </body>
 </html>
