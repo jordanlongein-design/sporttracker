@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V6.5</title>
+<title>SportTracker Mobile V6.6</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -226,8 +226,10 @@ const PROGRAMS = {
 let state = JSON.parse(localStorage.getItem("sporttracker_mobile_v2_updated") || '{"sessions":{},"generated":{},"weight":[],"steps":{},"custom":{},"noTreadmill":{}}');
 if(!state.diet) state.diet = {};
 if(!state.sleep) state.sleep = {};
+if(!state.lockedSessions) state.lockedSessions = {};
 let currentDate = nextTrainingDay(new Date());
 repairJordanManualSessions();
+freezePastSessions();
 
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
@@ -352,7 +354,73 @@ function repairJordanManualSessions(){
   saveState();
 }
 
-function baseProgram(d){const k=iso(d); const p = state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[sessionKeyForDate(d)]); return applyJordanManualPatch(k, p);}
+
+function minimalProgramCopy(p){
+  if(!p || !p.exercises) return p;
+  return {
+    name: p.name || "",
+    exercises: p.exercises.map(function(ex){
+      const c = clone(ex);
+      c.sets = (ex.sets || []).map(function(s){
+        return {
+          reps: Number(s.reps),
+          weight: Number(s.weight)
+        };
+      });
+      return c;
+    })
+  };
+}
+
+function freezePastSessions(){
+  if(!state) return;
+  if(!state.lockedSessions) state.lockedSessions = {};
+
+  const today = iso(new Date());
+
+  const dates = new Set();
+
+  if(state.sessions){
+    Object.keys(state.sessions).forEach(function(k){
+      if(k < today) dates.add(k);
+    });
+  }
+
+  if(state.generated){
+    Object.keys(state.generated).forEach(function(k){
+      if(k < today) dates.add(k);
+    });
+  }
+
+  dates.forEach(function(k){
+    if(state.lockedSessions[k]) return;
+
+    let program = null;
+
+    if(state.sessions && state.sessions[k] && state.sessions[k].program){
+      program = clone(state.sessions[k].program);
+    } else if(state.generated && state.generated[k]){
+      program = clone(state.generated[k]);
+    }
+
+    if(!program || !program.exercises) return;
+
+    program = applyJordanManualPatch(k, program);
+    state.lockedSessions[k] = minimalProgramCopy(program);
+
+    if(state.sessions && state.sessions[k]){
+      state.sessions[k].program = clone(state.lockedSessions[k]);
+    }
+
+    if(state.generated && state.generated[k]){
+      state.generated[k] = clone(state.lockedSessions[k]);
+    }
+  });
+
+  saveState();
+}
+
+function baseProgram(d){const k=iso(d); if(state.lockedSessions && state.lockedSessions[k]) return clone(state.lockedSessions[k]); const p = state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[sessionKeyForDate(d)]); return applyJordanManualPatch(k, p);}
 
 function progressExercise(ex, results, actual){
   const n=clone(ex), tops=ex.ranges.map(r=>r[1]), mins=ex.ranges.map(r=>r[0]);
@@ -569,7 +637,7 @@ function saveSession(){
   state.sessions[k]={name:p.name,program:p,actual,results};
   const nd=new Date(currentDate); nd.setDate(nd.getDate()+7); const nk=iso(nd);
   state.custom[nk]=sessionKeyForDate(currentDate);
-  state.generated[nk]={name:p.name,exercises:p.exercises.map(ex=>progressExercise(ex,results[ex.name],actual[ex.name]))};
+  if(!(state.lockedSessions && state.lockedSessions[nk])){state.generated[nk]={name:p.name,exercises:p.exercises.map(ex=>progressExercise(ex,results[ex.name],actual[ex.name]))};}
   saveState(); if(autoSync.checked) syncSheets(); alert("Séance enregistrée. Suivante générée : "+nk);
 }
 
@@ -710,7 +778,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.6 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
