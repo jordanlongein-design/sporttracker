@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V6.6</title>
+<title>SportTracker Mobile V6.7.7</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -230,6 +230,7 @@ if(!state.lockedSessions) state.lockedSessions = {};
 let currentDate = nextTrainingDay(new Date());
 repairJordanManualSessions();
 freezePastSessions();
+repairBeltSquat31MayOnly();
 
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
@@ -416,6 +417,47 @@ function freezePastSessions(){
       state.generated[k] = clone(state.lockedSessions[k]);
     }
   });
+
+  saveState();
+}
+
+
+function applyBeltSquat31MayOnlyPatch(k, p){
+  if(k !== "2026-05-31" || !p || !p.exercises) return p;
+
+  const ex = p.exercises.find(function(e){
+    return e && e.name === "Belt squat";
+  });
+
+  if(!ex || !ex.sets || ex.sets.length < 3) return p;
+
+  ex.sets[0].reps = 6;
+  ex.sets[0].weight = 25;
+
+  ex.sets[1].reps = 8;
+  ex.sets[1].weight = 25;
+
+  ex.sets[2].reps = 10;
+  ex.sets[2].weight = 25;
+
+  ex.ranges = [[6,8],[8,10],[10,12]];
+  ex.note = "Correction Belt squat 31/05";
+
+  return p;
+}
+
+function repairBeltSquat31MayOnly(){
+  if(!state) return;
+  if(!state.generated) state.generated = {};
+
+  const k = "2026-05-31";
+  const d = new Date(k + "T12:00:00");
+
+  const existing = state.generated[k]
+    ? clone(state.generated[k])
+    : clone(PROGRAMS[sessionKeyForDate(d)]);
+
+  state.generated[k] = applyBeltSquat31MayOnlyPatch(k, existing);
 
   saveState();
 }
@@ -778,7 +820,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.6 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.7.7 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
