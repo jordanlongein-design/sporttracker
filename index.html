@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V6.8</title>
+<title>SportTracker Mobile V6.7.7</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -199,7 +199,7 @@ const PROGRAMS = {
   3: { name:"Séance du mercredi", exercises:[
     {name:"Développé couché incliné (Smith machine)", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:18.75,reps:5},{weight:16.25,reps:7},{weight:15,reps:9}], increment:1.25},
     {name:"Tirage poulie haute", type:"cascade", ranges:[[4,6],[6,8],[8,10]], sets:[{weight:80,reps:5},{weight:75,reps:7},{weight:70,reps:9}], increment:5},
-    {name:"Ecarté poulie vis-à-vis", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:13.5,reps:10},{weight:13.5,reps:10},{weight:13.5,reps:10}], increment:2.5},
+    {name:"Ecarté poulie vis-à-vis", type:"direct", ranges:[[10,15],[10,15],[10,15]], sets:[{weight:12.5,reps:15},{weight:12.5,reps:15},{weight:12.5,reps:15}], increment:2.5},
     {name:"Curl incliné haltères", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:12,reps:12},{weight:12,reps:12},{weight:12,reps:12}], increment:2},
     {name:"Elévations latérales (poulie)", type:"direct", ranges:[[15,20],[15,20],[15,20]], sets:[{weight:2.5,reps:17},{weight:2.5,reps:17},{weight:2.5,reps:17}], increment:2.5},
     {name:"Crunch poulie", type:"direct", ranges:[[12,15],[12,15],[12,15]], sets:[{weight:32.5,reps:9},{weight:32.5,reps:9},{weight:32.5,reps:9}], increment:2.5},
@@ -231,7 +231,6 @@ let currentDate = nextTrainingDay(new Date());
 repairJordanManualSessions();
 freezePastSessions();
 repairBeltSquat31MayOnly();
-repairEcartePoulie03JuinOnly();
 
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
@@ -463,7 +462,7 @@ function repairBeltSquat31MayOnly(){
   saveState();
 }
 
-function baseProgram(d){const k=iso(d); if(state.lockedSessions && state.lockedSessions[k]) return applyEcartePoulie03JuinOnlyPatch(k, clone(state.lockedSessions[k])); const p = state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[sessionKeyForDate(d)]); return applyEcartePoulie03JuinOnlyPatch(k, applyJordanManualPatch(k, p));}
+function baseProgram(d){const k=iso(d); if(state.lockedSessions && state.lockedSessions[k]) return clone(state.lockedSessions[k]); const p = state.generated[k] ? clone(state.generated[k]) : clone(PROGRAMS[sessionKeyForDate(d)]); return applyJordanTargetsJuneWeek(k, applyJordanManualPatch(k, p));}
 
 function progressExercise(ex, results, actual){
   const n=clone(ex), tops=ex.ranges.map(r=>r[1]), mins=ex.ranges.map(r=>r[0]);
@@ -641,48 +640,40 @@ function repairSmithBenchSpecificLoads(){
 }
 
 
-function applyEcartePoulie03JuinOnlyPatch(k, p){
-  if(k !== "2026-06-03" || !p || !p.exercises) return p;
-
-  const ex = p.exercises.find(function(e){
-    return e && e.name === "Ecarté poulie vis-à-vis";
-  });
-
-  if(!ex || !ex.sets || ex.sets.length < 3) return p;
-
-  for(let i=0;i<3;i++){
-    ex.sets[i].reps = 10;
-    ex.sets[i].weight = 13.5;
-  }
-
-  ex.ranges = [[10,15],[10,15],[10,15]];
-  ex.note = "Correction écarté poulie 03/06";
-
-  return p;
-}
-
-function repairEcartePoulie03JuinOnly(){
-  if(!state) return;
-  if(!state.generated) state.generated = {};
-
-  const k = "2026-06-03";
-  const d = new Date(k + "T12:00:00");
-
-  const existing = state.generated[k]
-    ? clone(state.generated[k])
-    : clone(PROGRAMS[sessionKeyForDate(d)]);
-
-  state.generated[k] = applyEcartePoulie03JuinOnlyPatch(k, existing);
-
-  if(state.sessions && state.sessions[k] && state.sessions[k].program){
-    state.sessions[k].program = applyEcartePoulie03JuinOnlyPatch(k, state.sessions[k].program);
-  }
-
-  if(state.lockedSessions && state.lockedSessions[k]){
-    state.lockedSessions[k] = applyEcartePoulie03JuinOnlyPatch(k, state.lockedSessions[k]);
-  }
-
-  saveState();
+function applyJordanTargetsJuneWeek(k,p){
+ if(!p||!p.exercises) return p;
+ const map={
+ "2026-06-03":{
+  "Développé couché incliné (Smith machine)":[[5,20],[7,17.5],[9,16.25]],
+  "Tirage poulie haute":[[6,80],[8,75],[10,70]],
+  "Ecarté poulie vis-à-vis":[[10,13.5],[10,13.5],[10,13.5]],
+  "Curl incliné haltères":[[15,12],[15,12],[15,12]],
+  "Elévations latérales (poulie)":[[20,2.5],[20,2.5],[20,2.5]],
+  "Extension triceps (overhead)":[[15,12.5],[15,12.5],[15,12.5]]
+ },
+ "2026-06-05":{
+  "Tirage horizontal (dos)":[[5,70],[7,65],[9,60]],
+  "Extension triceps coude en bas (triceps)":[[15,12.5],[15,12.5],[15,12.5]],
+  "Curl haltère (classique)":[[11,16],[11,16],[11,16]],
+  "Développé décliné (barre)":[[6,20],[8,17.5],[10,15]],
+  "Pull-over poulie barre":[[12,18.5],[12,18.5],[12,18.5]]
+ },
+ "2026-06-07":{
+  "Presse":[[8,80],[8,80],[8,80]],
+  "Romanian dead lift (Barre guidée)":[[15,25],[15,25],[15,25]],
+  "Leg extension":[[12,60],[12,60],[12,60]],
+  "Leg curl allongé":[[8,12.5],[8,12.5],[8,12.5]],
+  "Extensions mollets (Barre guidée)":[[14,50],[10,50],[8,50]],
+  "Belt squat":[[7,25],[9,25],[11,25]]
+ }
+ };
+ if(!map[k]) return p;
+ Object.keys(map[k]).forEach(function(n){
+   const ex=p.exercises.find(e=>e&&e.name===n);
+   if(!ex||!ex.sets||ex.sets.length<3) return;
+   map[k][n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});
+ });
+ return p;
 }
 
 function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById("page-"+id).classList.add("active"); document.querySelectorAll(".bottom button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); if(id==="progress") renderProgress(); if(id==="measures") renderMeasures(); if(id==="export") generateExport();}
@@ -866,7 +857,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.8 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.7.7 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
