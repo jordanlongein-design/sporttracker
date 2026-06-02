@@ -1,4 +1,4 @@
-const CACHE_NAME='sporttracker-mobile-v6-7-belt-squat-only-20260531';
+const CACHE_NAME='sporttracker-mobile-v6-8-ecarte-only-20260603';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim();});
