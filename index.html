@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V6.7.7</title>
+<title>SportTracker Mobile V7.2</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -135,6 +135,7 @@ pre{white-space:pre-wrap;background:#0d0d0d;border:1px solid #222;border-radius:
     </div>
     <div class="row" style="margin-top:10px">
       <button onclick="addDiet()">Ajouter / Modifier</button>
+      <button class="secondary" onclick="toggleCheatMeal()">Cheat meal</button>
       <button class="secondary" onclick="deleteDiet()">Supprimer</button>
     </div>
     <pre id="dietList"></pre>
@@ -741,7 +742,7 @@ function deleteSteps(){
 
 function addWeight(){if(!weightDate.value||!weightValue.value)return; state.weight=state.weight.filter(x=>x.date!==weightDate.value); state.weight.push({date:weightDate.value,weight:Number(weightValue.value)}); state.weight.sort((a,b)=>a.date.localeCompare(b.date)); saveState(); renderMeasures();}
 function addSteps(){if(!stepsDate.value||!stepsValue.value)return; state.steps[stepsDate.value]=Number(stepsValue.value); saveState(); renderMeasures();}
-function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } if(typeof dietDate!=="undefined") dietDate.value ||= iso(new Date()); if(typeof dietList!=="undefined"){ const diet=state.diet||{}; dietList.textContent=Object.keys(diet).sort().map(d=>{const x=diet[d]; return `${d} : ${x.calories||""} kcal | P:${x.protein||""} | G:${x.carbs||""} | L:${x.fat||""} | F:${x.fiber||""}`;}).join("\n")||"Aucune donnée diète."; } if(typeof sleepDate!=="undefined") sleepDate.value ||= iso(new Date());
+function renderMeasures(){weightDate.value ||= iso(new Date()); stepsDate.value ||= iso(new Date()); if(typeof noTreadmillDate!=="undefined") noTreadmillDate.value ||= iso(new Date()); weightList.textContent=state.weight.map(x=>`${x.date} : ${fmt(x.weight)} kg`).join("\n")||"Aucune donnée"; stepsList.textContent=Object.keys(state.steps).sort().map(d=>`${d} : ${state.steps[d]} pas`).join("\n")||"Aucune donnée"; if(typeof noTreadmillList!=="undefined"){ const nt=state.noTreadmill||{}; noTreadmillList.textContent=Object.keys(nt).sort().filter(d=>nt[d]).map(d=>`${d} : pas de tapis incliné`).join("\n")||"Aucun jour coché."; } if(typeof dietDate!=="undefined") dietDate.value ||= iso(new Date()); if(typeof dietList!=="undefined"){ const diet=state.diet||{}; dietList.textContent=Object.keys(diet).sort().map(d=>{const x=diet[d]; return x.cheatMeal ? `${d} : Cheat meal` : `${d} : ${x.calories||""} kcal | P:${x.protein||""} | G:${x.carbs||""} | L:${x.fat||""} | F:${x.fiber||""}`;}).join("\n")||"Aucune donnée diète."; } if(typeof sleepDate!=="undefined") sleepDate.value ||= iso(new Date());
   if(typeof sleepList!=="undefined"){
     const sleep=state.sleep||{};
     sleepList.textContent=Object.keys(sleep).sort().map(d=>{
@@ -784,12 +785,33 @@ function addDiet(){
   if(!state.diet) state.diet = {};
   const d = dietDate.value || iso(new Date());
   state.diet[d] = {
+    cheatMeal: false,
     calories: Number(dietCalories.value || 0),
     protein: Number(dietProtein.value || 0),
     carbs: Number(dietCarbs.value || 0),
     fat: Number(dietFat.value || 0),
     fiber: Number(dietFiber.value || 0)
   };
+  saveState();
+  renderMeasures();
+  generateExport();
+}
+
+function toggleCheatMeal(){
+  if(!state.diet) state.diet = {};
+  const d = dietDate.value || iso(new Date());
+  const current = state.diet[d] || {};
+  const nextValue = !current.cheatMeal;
+
+  state.diet[d] = {
+    cheatMeal: nextValue,
+    calories: "",
+    protein: "",
+    carbs: "",
+    fat: "",
+    fiber: ""
+  };
+
   saveState();
   renderMeasures();
   generateExport();
@@ -810,6 +832,11 @@ function dietLines(d){
   if(!item){
     return ["Calories : ", "Macros : P :  | G :  | L :  | F : "];
   }
+
+  if(item.cheatMeal){
+    return ["Diète : Cheat meal"];
+  }
+
   return [
     `Calories : ${item.calories || ""} kcal`,
     `Macros : P : ${item.protein || ""}g | G : ${item.carbs || ""}g | L : ${item.fat || ""}g | F : ${item.fiber || ""}g`
@@ -857,7 +884,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V6.7.7 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V7.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
