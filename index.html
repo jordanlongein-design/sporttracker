@@ -916,9 +916,11 @@ function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
 async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V7.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260608v73");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
+
+<!-- build: 20260608v73-cachefix -->
 </body>
 </html>
