@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V7.2</title>
+<title>SportTracker Mobile V7.3</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -666,6 +666,36 @@ function applyJordanTargetsJuneWeek(k,p){
   "Leg curl allongé":[[8,12.5],[8,12.5],[8,12.5]],
   "Extensions mollets (Barre guidée)":[[14,50],[10,50],[8,50]],
   "Belt squat":[[7,25],[9,25],[11,25]]
+ },
+ "2026-06-08":{
+  "Overhead press (machine)":[[6,35],[8,32.5],[10,31.25]],
+  "Développé couché (Smith machine)":[[6,20],[8,17.5],[10,16.25]],
+  "Curl prise marteau (cycle amplitude 1)":[[12,20],[12,20],[12,20]],
+  "Oiseau assis prise neutre":[[12,12],[12,12],[12,12]],
+  "Rowing prise large":[[14,35],[14,35],[14,35]]
+ },
+ "2026-06-10":{
+  "Développé couché incliné (Smith machine)":[[6,20],[8,17.5],[10,16.25]],
+  "Tirage poulie haute":[[6,80],[8,75],[10,70]],
+  "Ecarté poulie vis-à-vis":[[11,13.5],[11,13.5],[11,13.5]],
+  "Curl incliné haltères":[[12,14],[12,14],[12,14]],
+  "Elévations latérales (poulie)":[[15,3.5],[15,3.5],[15,3.5]],
+  "Extension triceps (overhead)":[[12,13.5],[12,13.5],[12,13.5]]
+ },
+ "2026-06-12":{
+  "Tirage horizontal (dos)":[[6,70],[8,65],[10,60]],
+  "Extension triceps coude en bas (triceps)":[[12,13.5],[12,13.5],[12,13.5]],
+  "Curl haltère (classique)":[[12,16],[12,16],[12,16]],
+  "Développé décliné (barre)":[[7,20],[9,17.5],[11,15]],
+  "Pull-over poulie barre":[[13,18.5],[13,18.5],[13,18.5]]
+ },
+ "2026-06-14":{
+  "Presse":[[9,80],[9,80],[9,80]],
+  "Romanian dead lift (Barre guidée)":[[10,27.5],[10,27.5],[10,27.5]],
+  "Leg extension":[[12,60],[12,60],[12,60]],
+  "Leg curl allongé":[[9,12.5],[9,12.5],[9,12.5]],
+  "Extensions mollets (Barre guidée)":[[15,50],[11,50],[9,50]],
+  "Belt squat":[[8,25],[10,25],[12,25]]
  }
  };
  if(!map[k]) return p;
@@ -884,7 +914,7 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V7.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V7.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
