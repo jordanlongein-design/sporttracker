@@ -1,7 +1,7 @@
 {
   "name": "SportTracker Mobile V2",
   "short_name": "SportTracker",
-  "start_url": "./index.html?v=20260608v73",
+  "start_url": "./index.html?v=20260617v74",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",

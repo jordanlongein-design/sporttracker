@@ -696,6 +696,9 @@ function applyJordanTargetsJuneWeek(k,p){
   "Leg curl allongé":[[9,12.5],[9,12.5],[9,12.5]],
   "Extensions mollets (Barre guidée)":[[15,50],[11,50],[9,50]],
   "Belt squat":[[8,25],[10,25],[12,25]]
+ },
+ "2026-06-17":{
+  "Développé couché incliné (Smith machine)":[[4,21.25],[6,18.75],[8,17.5]]
  }
  };
  if(!map[k]) return p;
@@ -916,11 +919,11 @@ function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
 async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V7.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260608v73");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260617v74");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260608v73-cachefix -->
+<!-- build: 20260617v74-dc-incline-only -->
 </body>
 </html>
