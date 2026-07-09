@@ -1,9 +1,9 @@
-const CACHE_NAME = 'sporttracker-mobile-v8-7-dc-incline-17-juin-20260617';
+const CACHE_NAME = 'sporttracker-mobile-v8-8-dc-incline-17-juin-20260617';
 
 const ASSETS = [
   './',
   './index.html',
-  './index.html?v=20260708v87',
+  './index.html?v=20260710v88',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
