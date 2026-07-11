@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V8.8</title>
+<title>SportTracker Mobile V8.9</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -235,6 +235,33 @@ repairBeltSquat31MayOnly();
 
 repairSpecialCascadeGeneratedSessions();
 repairSmithBenchSpecificLoads();
+repairFriday10JulyOnly();
+
+
+function repairFriday10JulyOnly(){
+  if(!state) return;
+  const k = "2026-07-10";
+  const d = new Date(k + "T12:00:00");
+  let p = null;
+  if(state.lockedSessions && state.lockedSessions[k]) p = clone(state.lockedSessions[k]);
+  else if(state.generated && state.generated[k]) p = clone(state.generated[k]);
+  else p = clone(PROGRAMS[sessionKeyForDate(d)]);
+  if(!p || !p.exercises) return;
+  const fixes = {
+    "Tirage horizontal (dos)": [{reps:4,weight:67},{reps:6,weight:66.5},{reps:8,weight:66}],
+    "Extension triceps coude en bas (triceps)": [{reps:12,weight:14},{reps:12,weight:14},{reps:12,weight:14}]
+  };
+  Object.keys(fixes).forEach(function(exName){
+    const ex = p.exercises.find(function(e){ return e && e.name === exName; });
+    if(!ex || !ex.sets || ex.sets.length < 3) return;
+    fixes[exName].forEach(function(v,i){ ex.sets[i].reps=v.reps; ex.sets[i].weight=v.weight; });
+  });
+  if(!state.generated) state.generated = {};
+  state.generated[k] = clone(p);
+  if(state.lockedSessions && state.lockedSessions[k]) state.lockedSessions[k] = clone(p);
+  if(state.sessions && state.sessions[k] && state.sessions[k].program) state.sessions[k].program = clone(p);
+  saveState();
+}
 
 function saveState(){localStorage.setItem("sporttracker_mobile_v2_updated", JSON.stringify(state));}
 function iso(d){return d.toISOString().slice(0,10);}
@@ -953,13 +980,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V8.8 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V8.9 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260710v88");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260710v89");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260710v88-dc-incline-only -->
+<!-- build: 20260710v89-dc-incline-only -->
 </body>
 </html>
