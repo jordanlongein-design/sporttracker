@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V10.2</title>
+<title>SportTracker Mobile V10.3</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -904,7 +904,8 @@ function applyJordanTargetsJuneWeek(k,p){
   "Tirage poulie haute":[[5,43],[7,42],[9,40]],
   "Ecarté poulie vis-à-vis":[[10,14],[10,14],[10,14]],
   "Curl incliné haltères":[[12,16],[12,16],[12,16]],
-  "Elévations latérales (poulie)":[[16,4],[16,4],[16,4]]
+  "Elévations latérales (poulie)":[[16,4],[16,4],[16,4]],
+  "Extension triceps (overhead)":[[15,14],[15,14],[15,14]]
  }
  };
  if(!map[k]) return p;
@@ -1123,13 +1124,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V10.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V10.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260805v102");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260805v103");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260805v102-dc-incline-only -->
+<!-- build: 20260805v103-dc-incline-only -->
 </body>
 </html>
