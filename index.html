@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V10.3</title>
+<title>SportTracker Mobile V10.4</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -906,6 +906,13 @@ function applyJordanTargetsJuneWeek(k,p){
   "Curl incliné haltères":[[12,16],[12,16],[12,16]],
   "Elévations latérales (poulie)":[[16,4],[16,4],[16,4]],
   "Extension triceps (overhead)":[[15,14],[15,14],[15,14]]
+ },
+ "2026-08-07":{
+  "Tirage horizontal (dos)":[[6,43],[8,42],[10,41]],
+  "Extension triceps coude en bas (triceps)":[[12,15],[12,15],[12,15]],
+  "Curl haltère (classique)":[[14,18],[14,18],[14,18]],
+  "Développé décliné (barre)":[[6,23.5],[8,21.5],[10,20]],
+  "Pull-over poulie barre":[[13,22],[13,22],[13,22]]
  }
  };
  if(!map[k]) return p;
@@ -1124,13 +1131,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V10.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V10.4 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260805v103");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260807v104");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260805v103-dc-incline-only -->
+<!-- build: 20260807v104-dc-incline-only -->
 </body>
 </html>
