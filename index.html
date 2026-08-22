@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V11.2</title>
+<title>SportTracker Mobile V11.3</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -239,6 +239,7 @@ repairFriday10JulyOnly();
 repairFriday24JulyOnly();
 repairMonday03AugustOnly();
 repairMonday17AugustOnly();
+repairFriday14AugustTirageOnly();
 
 
 
@@ -253,6 +254,16 @@ function repairMonday17AugustOnly(){
   if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);
   if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);
   saveState();
+}
+
+function repairFriday14AugustTirageOnly(){
+ if(!state)return;const k="2026-08-14",d=new Date(k+"T12:00:00");
+ let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);
+ if(!p||!p.exercises)return;const ex=p.exercises.find(e=>e&&e.name==="Tirage horizontal (dos)");if(!ex||!ex.sets||ex.sets.length<3)return;
+ [[4,44],[6,43],[8,42]].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});
+ if(!state.generated)state.generated={};state.generated[k]=clone(p);
+ if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);
+ if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 
 function repairFriday10JulyOnly(){
@@ -1166,13 +1177,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V11.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V11.3 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260819v112");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260822v113");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260819v112-dc-incline-only -->
+<!-- build: 20260822v113-dc-incline-only -->
 </body>
 </html>
