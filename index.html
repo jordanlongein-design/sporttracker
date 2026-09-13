@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V11.8</title>
+<title>SportTracker Mobile V11.9</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -242,6 +242,7 @@ repairMonday17AugustOnly();
 repairFriday14AugustTirageOnly();
 repairMonday24AugustOverheadOnly();
 repairSeptemberPastSessionsOnly();
+repairSunday13SeptemberOnly();
 
 
 
@@ -281,6 +282,13 @@ function repairMonday24AugustOverheadOnly(){
 function repairSeptemberPastSessionsOnly(){
  if(!state)return;const fixes={"2026-09-07":{"Overhead press (machine)":[[6,37.5],[8,35],[10,33.75]],"Rowing prise large":[[14,38],[14,38],[14,38]],"Oiseau assis prise neutre":[[12,15],[12,15],[12,15]],"Développé couché (Smith machine)":[[6,25],[8,23],[10,21.25]],"Curl prise marteau (cycle amplitude 1)":[[12,8],[12,8],[12,8]],"Elévations latérales (poulie)":[[20,4],[20,4],[20,4]]},"2026-09-09":{"Développé couché incliné (Smith machine)":[[5,25],[7,23],[9,21]],"Tirage poulie haute":[[6,44],[8,43],[10,42]],"Ecarté poulie vis-à-vis":[[14,14],[14,14],[14,14]],"Elévations latérales (poulie)":[[20,4],[20,4],[20,4]],"Extension triceps (overhead)":[[15,14.5],[15,14.5],[15,14.5]]},"2026-09-11":{"Tirage horizontal (dos)":[[4,45],[6,44],[8,43]],"Extension triceps coude en bas (triceps)":[[12,16],[12,16],[12,16]],"Curl haltère (classique)":[[14,18],[14,18],[14,18]],"Développé décliné (barre)":[[7,25],[9,22.5],[11,21.5]],"Pull-over poulie barre":[[13,23],[13,23],[13,23]]}};
  Object.keys(fixes).forEach(k=>{const d=new Date(k+"T12:00:00");let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes[k]).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[k][n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);});saveState();
+}
+
+function repairSunday13SeptemberOnly(){
+ if(!state)return;const fixes={"2026-09-13":{"Belt squat":[[7,37.5],[9,37.5],[11,37.5]],"Extensions mollets (Barre guidée)":[[14,53.5],[10,53.5],[8,53.5]],"Leg curl allongé":[[11,12.5],[11,12.5],[11,12.5]],"Leg extension":[[12,60],[12,60],[12,60]],"Presse":[[9,40],[9,40],[9,40]],"Romanian dead lift (Barre guidée)":[[12,28.5],[12,28.5],[12,28.5]]}},k="2026-09-13",d=new Date(k+"T12:00:00");
+ let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);
+ if(!p||!p.exercises)return;Object.keys(fixes[k]).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[k][n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});
+ if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 
 function repairFriday10JulyOnly(){
@@ -1007,6 +1015,14 @@ function applyJordanTargetsJuneWeek(k,p){
   "Curl haltère (classique)":[[14,18],[14,18],[14,18]],
   "Développé décliné (barre)":[[7,25],[9,22.5],[11,21.5]],
   "Pull-over poulie barre":[[13,23],[13,23],[13,23]]
+ },
+ "2026-09-13":{
+  "Belt squat":[[7,37.5],[9,37.5],[11,37.5]],
+  "Extensions mollets (Barre guidée)":[[14,53.5],[10,53.5],[8,53.5]],
+  "Leg curl allongé":[[11,12.5],[11,12.5],[11,12.5]],
+  "Leg extension":[[12,60],[12,60],[12,60]],
+  "Presse":[[9,40],[9,40],[9,40]],
+  "Romanian dead lift (Barre guidée)":[[12,28.5],[12,28.5],[12,28.5]]
  }
  };
  if(!map[k]) return p;
@@ -1225,13 +1241,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V11.8 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V11.9 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260913v118");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260913v119");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260913v118-dc-incline-only -->
+<!-- build: 20260913v119-dc-incline-only -->
 </body>
 </html>
