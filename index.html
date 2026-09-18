@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V12.1</title>
+<title>SportTracker Mobile V12.2</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -243,6 +243,7 @@ repairFriday14AugustTirageOnly();
 repairMonday24AugustOverheadOnly();
 repairSeptemberPastSessionsOnly();
 repairSunday13SeptemberOnly();
+repairFriday18SeptemberTirageOnly();
 
 
 
@@ -289,6 +290,10 @@ function repairSunday13SeptemberOnly(){
  let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);
  if(!p||!p.exercises)return;Object.keys(fixes[k]).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[k][n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});
  if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
+}
+
+function repairFriday18SeptemberTirageOnly(){
+ if(!state)return;const k="2026-09-18",d=new Date(k+"T12:00:00");let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;const ex=p.exercises.find(e=>e&&e.name==="Tirage horizontal (dos)");if(!ex||!ex.sets||ex.sets.length<3)return;[[5,45],[7,44],[9,43]].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 
 function repairFriday10JulyOnly(){
@@ -1033,6 +1038,9 @@ function applyJordanTargetsJuneWeek(k,p){
   "Tirage poulie haute":[[4,45],[6,44],[8,43]],
   "Elévations latérales (poulie)":[[15,4.5],[15,4.5],[15,4.5]],
   "Extension triceps (overhead)":[[12,15],[12,15],[12,15]]
+ },
+ "2026-09-18":{
+  "Tirage horizontal (dos)":[[5,45],[7,44],[9,43]]
  }
  };
  if(!map[k]) return p;
@@ -1251,13 +1259,13 @@ function generateExport(){const dates=new Set([...state.weight.map(x=>x.date),..
 function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");}
 
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
-async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V12.1 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
+async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V12.2 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260916v121");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20260918v122");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20260916v121-dc-incline-only -->
+<!-- build: 20260918v122-dc-incline-only -->
 </body>
 </html>
