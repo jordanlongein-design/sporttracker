@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SportTracker Mobile V13.8</title>
+<title>SportTracker Mobile V13.9</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050505">
 <meta name="mobile-web-app-capable" content="yes">
@@ -253,6 +253,7 @@ repairFriday09OctoberOnly();
 repairSunday11OctoberRDLOnly();
 repairMonday12OctoberOnly();
 repairWednesday14OctoberOnly();
+repairFriday16OctoberTirageOnly();
 repairMonday28SeptemberOnly();
 
 
@@ -341,6 +342,9 @@ function repairSunday11OctoberRDLOnly(){
 }
 function repairWednesday14OctoberOnly(){
  if(!state)return;const k="2026-10-14",d=new Date(k+"T12:00:00"),fixes={"Développé couché incliné (Smith machine)":[[4,27.5],[6,26.5],[8,25]],"Extension triceps (overhead)":[[12,15.5],[12,15.5],[12,15.5]]};let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
+}
+function repairFriday16OctoberTirageOnly(){
+ if(!state)return;const k="2026-10-16",d=new Date(k+"T12:00:00");let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;const ex=p.exercises.find(e=>e&&e.name==="Tirage horizontal (dos)");if(!ex||!ex.sets||ex.sets.length<3)return;[[6,46],[8,45],[10,44]].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 function repairFriday10JulyOnly(){
   if(!state) return;
@@ -1134,6 +1138,9 @@ function applyJordanTargetsJuneWeek(k,p){
  "2026-10-14":{
   "Développé couché incliné (Smith machine)":[[4,27.5],[6,26.5],[8,25]],
   "Extension triceps (overhead)":[[12,15.5],[12,15.5],[12,15.5]]
+ },
+ "2026-10-16":{
+  "Tirage horizontal (dos)":[[6,46],[8,45],[10,44]]
  }
  };
  if(!map[k]) return p;
@@ -1354,11 +1361,11 @@ function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
 async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V13.5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261014v138");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261016v139");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20261014v138-dc-incline-only -->
+<!-- build: 20261016v139-dc-incline-only -->
 </body>
 </html>
