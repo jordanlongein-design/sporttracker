@@ -256,6 +256,7 @@ repairWednesday14OctoberOnly();
 repairFriday16OctoberTirageOnly();
 repairSunday18OctoberBeltOnly();
 repairMonday19OctoberOnly();
+repairWednesday21OctoberEcarteOnly();
 repairMonday28SeptemberOnly();
 
 
@@ -353,6 +354,9 @@ function repairFriday16OctoberTirageOnly(){
 }
 function repairMonday19OctoberOnly(){
  if(!state)return;const k="2026-10-19",d=new Date(k+"T12:00:00"),fixes={"Overhead press (machine)":[[5,38.5],[7,36.5],[9,35]],"Développé couché (Smith machine)":[[6,27.5],[8,26.5],[10,25]],"Curl prise marteau (cycle amplitude 1)":[[8,9.5],[8,9.5],[8,9.5]]};let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
+}
+function repairWednesday21OctoberEcarteOnly(){
+ if(!state)return;const k="2026-10-21",d=new Date(k+"T12:00:00");let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;const ex=p.exercises.find(e=>e&&e.name==="Ecarté poulie vis-à-vis");if(!ex||!ex.sets||ex.sets.length<3)return;[[10,14.5],[10,14.5],[10,14.5]].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 function repairFriday10JulyOnly(){
   if(!state) return;
@@ -1155,6 +1159,9 @@ function applyJordanTargetsJuneWeek(k,p){
   "Overhead press (machine)":[[5,38.5],[7,36.5],[9,35]],
   "Développé couché (Smith machine)":[[6,27.5],[8,26.5],[10,25]],
   "Curl prise marteau (cycle amplitude 1)":[[8,9.5],[8,9.5],[8,9.5]]
+ },
+ "2026-10-21":{
+  "Ecarté poulie vis-à-vis":[[10,14.5],[10,14.5],[10,14.5]]
  }
  };
  if(!map[k]) return p;
@@ -1375,11 +1382,11 @@ function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
 async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V13.5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261019v141");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261021v142");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20261019v141-dc-incline-only -->
+<!-- build: 20261021v142-dc-incline-only -->
 </body>
 </html>
