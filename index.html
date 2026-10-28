@@ -259,6 +259,7 @@ repairMonday19OctoberOnly();
 repairWednesday21OctoberEcarteOnly();
 repairFriday23OctoberOnly();
 repairMonday26OctoberOnly();
+repairWednesday28OctoberOnly();
 repairMonday28SeptemberOnly();
 
 
@@ -362,6 +363,9 @@ function repairWednesday21OctoberEcarteOnly(){
 }
 function repairFriday23OctoberOnly(){
  if(!state)return;const k="2026-10-23",d=new Date(k+"T12:00:00"),fixes={"Tirage horizontal (dos)":[[4,47],[6,46],[8,45]],"Développé décliné (barre)":[[6,27.5],[8,25],[10,23.5]]};let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
+}
+function repairWednesday28OctoberOnly(){
+ if(!state)return;const k="2026-10-28",d=new Date(k+"T12:00:00"),fixes={"Tirage poulie haute": [[4, 47], [6, 46], [8, 45]], "Elévations latérales (poulie)": [[15, 5], [15, 5], [15, 5]]};let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
 }
 function repairMonday26OctoberOnly(){
  if(!state)return;const k="2026-10-26",d=new Date(k+"T12:00:00"),fixes={"Overhead press (machine)": [[6, 38.5], [8, 36.5], [10, 35]], "Développé couché (Smith machine)": [[4, 28.5], [6, 27.5], [8, 26.5]]};let p=(state.lockedSessions&&state.lockedSessions[k])?clone(state.lockedSessions[k]):(state.generated&&state.generated[k])?clone(state.generated[k]):(state.sessions&&state.sessions[k]&&state.sessions[k].program)?clone(state.sessions[k].program):clone(PROGRAMS[sessionKeyForDate(d)]);if(!p||!p.exercises)return;Object.keys(fixes).forEach(n=>{const ex=p.exercises.find(e=>e&&e.name===n);if(ex&&ex.sets&&ex.sets.length>=3)fixes[n].forEach((v,i)=>{ex.sets[i].reps=v[0];ex.sets[i].weight=v[1];});});if(!state.generated)state.generated={};state.generated[k]=clone(p);if(state.lockedSessions&&state.lockedSessions[k])state.lockedSessions[k]=clone(p);if(state.sessions&&state.sessions[k]&&state.sessions[k].program)state.sessions[k].program=clone(p);saveState();
@@ -1178,6 +1182,10 @@ function applyJordanTargetsJuneWeek(k,p){
  "2026-10-26":{
   "Overhead press (machine)":[[6,38.5],[8,36.5],[10,35]],
   "Développé couché (Smith machine)":[[4,28.5],[6,27.5],[8,26.5]]
+ },
+ "2026-10-28":{
+  "Tirage poulie haute":[[4,47],[6,46],[8,45]],
+  "Elévations latérales (poulie)":[[15,5],[15,5],[15,5]]
  }
  };
  if(!map[k]) return p;
@@ -1398,11 +1406,11 @@ function copyExport(){navigator.clipboard.writeText(exportText.textContent||"");
 function setAutoSync(v){localStorage.setItem("st_auto_sync",v?"1":"0");}
 async function syncSheets(){generateExport(); syncStatus.textContent="Synchronisation..."; try{await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({source:"SportTracker Mobile V13.5 sleep",exported_at:new Date().toISOString(),state,export_text:(typeof exportText!=="undefined"?exportText.textContent:"")})}); syncStatus.textContent="Sync envoyée. Vérifie Google Sheets.";}catch(e){syncStatus.textContent="Erreur : "+e.message;}}
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261026v144");}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js?v=20261028v145");}
 weightDate.value=iso(new Date()); stepsDate.value=iso(new Date()); autoSync.checked=localStorage.getItem("st_auto_sync")==="1";
 renderSession(); renderMeasures();
 </script>
 
-<!-- build: 20261026v144-dc-incline-only -->
+<!-- build: 20261028v145-dc-incline-only -->
 </body>
 </html>
